@@ -1,0 +1,990 @@
+#!/usr/bin/env python
+
+import os                               # Operating system
+import time                             # Time functions
+import sys                              # System functions
+import glob                             # Filename globbing
+import re                               # Regular expressions
+import csv                              # Easy way to parse files
+import datetime
+import argparse
+
+import pydot
+
+import tkMessageBox
+import tkFileDialog
+
+import xml.etree.ElementTree as ET
+
+from Tkinter import *
+import ttk
+from ImageTk import PhotoImage
+
+import FamilyTreeGraph as FTG
+
+
+# ========================================================================
+# Dialog to select a subject
+# ========================================================================
+
+class DialogSelectSubject:
+
+    def __init__( self, parent, ftXML, instruction,
+                  fnCallbackSelection, fnCallbackClear,
+                  sexCriterion ):
+
+        self.top = Toplevel(parent)
+        self.top.geometry( '{}x{}'.format( 300, 900 ) )
+
+        self.ftGraph = FTG.FamilyTreeGraph( ftXML )
+
+        self.instruction = instruction
+        self.callback = fnCallbackSelection
+        self.callbackClear = fnCallbackClear
+        self.sexCriterion = sexCriterion
+
+        self.top.columnconfigure(0, weight=1)
+        self.top.rowconfigure(0, weight=1)	
+
+        self.idIndividual = None
+
+        self.CreateSubjectListbox()
+         
+        okButton = Button( self.top, text="OK", command=self.OnOK )
+        okButton.pack()
+
+        cancelButton = Button( self.top, text="CANCEL", command=self.OnCancel )
+        cancelButton.pack()
+
+        self.top.transient(root)
+        self.top.grab_set()
+        parent.wait_window( self.top )
+
+    def CreateSubjectListbox(self):
+
+        column = 0
+        nColumns = 2
+
+        row = 1
+        nRows = 20
+
+        self.labelSubject = Label( self.top, text=self.instruction )        
+        self.labelSubject.pack()
+
+        self.SubjectScrollbarY = Scrollbar(self.top, orient=VERTICAL)
+        self.SubjectScrollbarX = Scrollbar(self.top, orient=HORIZONTAL)
+
+        self.SubjectListbox = \
+            Listbox( self.top, selectmode=SINGLE,
+                     xscrollcommand=self.SubjectScrollbarX.set,
+                     yscrollcommand=self.SubjectScrollbarY.set,
+                     exportselection=0 )
+        self.SubjectListbox.pack(fill=BOTH, expand=1)
+
+        self.UpdateSubjectListboxItems( False )
+
+        self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
+        self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
+
+        self.SubjectListbox.bind( '<<ListboxSelect>>', 
+                                  self.callback ) 
+
+
+    def OnSubjectListboxSelect(self, val):
+      
+        sender = val.widget
+
+        idx = sender.curselection()
+        value = sender.get(idx).split( ', ' )   
+
+        self.idIndividual = value[2]
+        
+
+    def UpdateSubjectListboxItems(self, flgActivateSelectedIndividual):
+
+        self.SubjectListbox.delete( 0, END )
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        labels = []
+        theLabel  = None
+        for individual in self.ftGraph.GetIndividuals():
+
+            if (  ( self.sexCriterion is None ) or
+                  ( individual.findtext('SEX') == self.sexCriterion ) ):
+
+                idIndividual = individual.attrib['id']
+                forename = individual.findtext('NAME/forename') or ''
+                surname  = individual.findtext('NAME/surname') or ''
+
+                label = ', '.join( [ surname, forename, idIndividual,  ] )
+                labels.append( label )
+
+                if ( individual == theIndividual ):
+                    theLabel = label
+
+        labels = [ '***  New Individual ***' ] + sorted( labels )
+
+        index = None
+        for label in labels:
+            self.SubjectListbox.insert( END, label )
+
+            if ( flgActivateSelectedIndividual and ( label == theLabel ) ):
+
+                self.SubjectListbox.selection_set( END )
+                index = self.SubjectListbox.curselection()
+
+        if ( index is not None ):
+            self.SubjectListbox.see( index )
+        
+
+    def OnOK( self ):
+
+        self.top.destroy()
+
+    def OnCancel( self ):
+
+        self.callbackClear()
+        self.top.destroy()
+
+
+# ========================================================================
+# Main GUI Application
+# ========================================================================
+
+class Application( Frame ):
+
+    # --------------------------------------------------------------------
+    #  __init__
+    # --------------------------------------------------------------------
+
+    def __init__( self, master, ftXML, fileOutXML ):
+
+        """Initialise the application class"""
+
+        self.master = master
+        Frame.__init__(self, self.master)
+
+        self.ftXML = ftXML
+        self.ftGraph = FTG.FamilyTreeGraph( ftXML )
+        
+        self.fileOutXML = fileOutXML
+
+        self.grid()
+
+        self.master.columnconfigure(0, weight=1)
+        self.master.rowconfigure(0, weight=1)	
+
+        self.InitialiseMemberParameters()
+
+        self.CreateWidgets()
+        self.UpdateSelectedSubject()
+        self.UpdateSubjectListboxItems( True )
+
+        master.bind("<Key>", self.OnKeypress)
+
+
+    # --------------------------------------------------------------------
+    #  destroy()
+    # --------------------------------------------------------------------
+
+    def destroy(self):
+
+        if ( self.fileOutXML is not None ):
+
+            print 'Writing modified XML to file:', self.fileOutXML
+            fout = open( self.fileOutXML, 'wb' )
+            fout.write( ET.tostring( self.ft ) )
+            fout.close()
+            
+        
+    # --------------------------------------------------------------------
+    # InitialiseMemberParameters
+    # --------------------------------------------------------------------
+
+    def InitialiseMemberParameters(self):
+
+        self.idIndividual = None
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        if ( theIndividual is None ):
+            
+            theIndividual = self.ftGraph.CreateIndividual()
+
+        self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
+        print self.idIndividual
+
+        self.varSelectedSubject = StringVar()
+        self.varSelectedSubject.set( "" )
+
+        self.varSelectedID = StringVar()
+        self.varSelectedFamilySpouseID = StringVar()
+        self.varSelectedFamilyChildID = StringVar()
+
+        self.varSelectedLastName = StringVar()
+        self.varSelectedFirstName = StringVar()
+
+        self.varSelectedSex = StringVar()
+
+        self.varSelectedBirthDay   = StringVar()
+        self.varSelectedBirthMonth = StringVar()
+        self.varSelectedBirthYear  = StringVar()
+
+        self.varSelectedDeathDay   = StringVar()
+        self.varSelectedDeathMonth = StringVar()
+        self.varSelectedDeathYear  = StringVar()
+
+        self.varSelectedSpouse = StringVar()
+
+        self.InitialiseSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # CreateWidgets
+    # --------------------------------------------------------------------
+
+    def CreateWidgets(self):
+
+        months = [ '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+
+        days = [ '' ] + [str(x) for x in range( 1, 31 )]
+
+        self.CreateSubjectListbox()
+
+        iRow = 22
+        iCol = 0
+        
+        # New subject
+
+        self.buttonNewSubject = Button(self)
+        self.buttonNewSubject['text'] = 'New Subject'
+        self.buttonNewSubject['command'] = self.OnNewSubject
+        
+        self.buttonNewSubject.grid(row=iRow, column=0, columnspan=2, sticky=N+S+E+W)
+
+
+
+        iRow = 2
+        iCol = 4
+
+        # ID
+        self.labelID = Label(self, text='ID:', anchor=W, justify=LEFT)        
+        self.labelID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.labelSelectedID = \
+            Label(self, textvariable=self.varSelectedID, anchor=W, justify=LEFT)
+
+        self.labelSelectedID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
+                                   sticky=N+S+E+W )
+
+        iRow = iRow + 1
+
+        # FamilySpouse
+        self.labelFamilySpouseID = Label(self, text='FID Spouse:', anchor=W, justify=LEFT)        
+        self.labelFamilySpouseID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.labelSelectedFamilySpouseID = \
+            Label(self, textvariable=self.varSelectedFamilySpouseID, anchor=W, justify=LEFT)
+
+        self.labelSelectedFamilySpouseID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
+                                   sticky=N+S+E+W )
+
+        iRow = iRow + 1
+
+       # FamilyChild
+        self.labelFamilyChildID = Label(self, text='FID Child:', anchor=W, justify=LEFT)        
+        self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.labelSelectedFamilyChildID = \
+            Label(self, textvariable=self.varSelectedFamilyChildID, anchor=W, justify=LEFT)
+
+        self.labelSelectedFamilyChildID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
+                                   sticky=N+S+E+W )
+
+        iRow = iRow + 1
+
+        # Last name
+        self.labelLastName = Label(self, text='Last Name:', anchor=W, justify=LEFT)        
+        self.labelLastName.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.entrySelectedLastName = \
+            Entry(self, textvariable=self.varSelectedLastName)
+
+        self.entrySelectedLastName.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=3,
+                                         sticky=N+S+E+W )
+        self.varSelectedLastName.trace( "w", self.OnLastNameEdited )
+
+        iRow = iRow + 1
+
+        # First name
+        self.labelFirstName = Label(self, text='First Name:', anchor=W, justify=LEFT)        
+        self.labelFirstName.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.entrySelectedFirstName = \
+            Entry(self, textvariable=self.varSelectedFirstName)
+
+        self.entrySelectedFirstName.grid( row=iRow, rowspan=1, 
+                                          column=iCol+1, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedFirstName.trace( "w", self.OnFirstNameEdited )
+
+        iRow = iRow + 1
+
+        # Sex
+        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)        
+        self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
+                                             ' ', 'M', 'F' )
+        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect ) 
+ 
+        self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
+
+        iRow = iRow + 1
+
+        # Birth Date
+        self.labelBirth = Label(self, text='Birth:', anchor=W, justify=LEFT)        
+        self.labelBirth.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.optionSelectedBirthDay = OptionMenu( self, self.varSelectedBirthDay, *days )
+        self.optionSelectedBirthDay.bind( '<<ListboxSelect>>', self.OnBirthDayOptionSelect ) 
+ 
+        self.optionSelectedBirthDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedBirthDay.trace( "w", self.OnBirthDayOptionSelect )
+
+        self.optionSelectedBirthMonth = OptionMenu( self, self.varSelectedBirthMonth, *months )
+        self.optionSelectedBirthMonth.bind( '<<ListboxSelect>>', self.OnBirthMonthOptionSelect ) 
+ 
+        self.optionSelectedBirthMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedBirthMonth.trace( "w", self.OnBirthMonthOptionSelect )
+
+        self.entrySelectedBirthYear = \
+            Entry(self, textvariable=self.varSelectedBirthYear, width=4)
+
+        self.entrySelectedBirthYear.grid( row=iRow, rowspan=1, 
+                                          column=iCol+3, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedBirthYear.trace( "w", self.OnBirthYearEdited )
+
+        iRow = iRow + 1
+
+        # Death Date
+        self.labelDeath = Label(self, text='Death:', anchor=W, justify=LEFT)        
+        self.labelDeath.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.optionSelectedDeathDay = OptionMenu( self, self.varSelectedDeathDay, *days )
+        self.optionSelectedDeathDay.bind( '<<ListboxSelect>>', self.OnDeathDayOptionSelect ) 
+ 
+        self.optionSelectedDeathDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedDeathDay.trace( "w", self.OnDeathDayOptionSelect )
+
+        self.optionSelectedDeathMonth = OptionMenu( self, self.varSelectedDeathMonth, *months )
+        self.optionSelectedDeathMonth.bind( '<<ListboxSelect>>', self.OnDeathMonthOptionSelect ) 
+ 
+        self.optionSelectedDeathMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedDeathMonth.trace( "w", self.OnDeathMonthOptionSelect )
+
+        self.entrySelectedDeathYear = \
+            Entry(self, textvariable=self.varSelectedDeathYear, width=4)
+
+        self.entrySelectedDeathYear.grid( row=iRow, rowspan=1, 
+                                          column=iCol+3, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedDeathYear.trace( "w", self.OnDeathYearEdited )
+
+
+
+
+        iRow = 22
+        
+        # Delete subject
+
+        self.buttonDeleteSubject = Button(self)
+        self.buttonDeleteSubject['text'] = 'Delete Subject'
+        self.buttonDeleteSubject['command'] = self.OnDeleteSubject
+        
+        self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
+
+
+
+        iRow = 2
+        iCol = iCol + 4
+
+        # Father
+        self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)        
+        self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.buttonFather = Button(self)
+        self.buttonFather.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+        self.UpdateFatherButton()
+
+        iRow = iRow + 1
+
+        # Mother
+        self.labelMother = Label(self, text='Mother:', anchor=W, justify=LEFT)        
+        self.labelMother.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.buttonMother = Button(self)
+        self.buttonMother.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+        self.UpdateMotherButton()
+
+        iRow = iRow + 1
+
+        # Spouse
+        self.labelSpouse = Label(self, text='Spouse:', anchor=W, justify=LEFT)        
+        self.labelSpouse.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.buttonSpouse = Button(self)
+        self.buttonSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+        self.UpdateSpouseButton()
+
+
+
+
+
+        iRow = 22
+
+        # Quit
+
+        self.buttonQuit = Button(self)
+        self.buttonQuit['text'] = 'QUIT'
+        self.buttonQuit['fg']   = 'red'
+        self.buttonQuit['command'] =  self.quit
+        
+        self.buttonQuit.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+
+        for column in range( 30 ):
+            self.columnconfigure(column, weight=1)
+
+        for row in range( 30 ):
+            self.rowconfigure(row, weight=1)	
+
+    
+    # --------------------------------------------------------------------
+    # CreateSubjectListbox
+    # --------------------------------------------------------------------
+
+    def CreateSubjectListbox(self):
+
+        column = 0
+        nColumns = 2
+
+        row = 1
+        nRows = 20
+
+        self.labelSubject = Label(self, text='Subjects')        
+        self.labelSubject.grid(row=row-1, column=column, 
+                               columnspan=nColumns, sticky=N+S)
+
+        self.SubjectScrollbarY = Scrollbar(self, orient=VERTICAL)
+        self.SubjectScrollbarY.grid(row=row, column=column+nColumns,
+                                    rowspan=nRows, 
+                                    sticky=N+S)
+        self.SubjectScrollbarY.rowconfigure(row, weight=1)
+        
+        self.SubjectScrollbarX = Scrollbar(self, orient=HORIZONTAL)
+        self.SubjectScrollbarX.grid(row=row+nRows, column=column,
+                                    columnspan=nColumns, 
+                                    sticky=E+W)
+
+        self.SubjectListbox = \
+            Listbox( self, selectmode=SINGLE,
+                     xscrollcommand=self.SubjectScrollbarX.set,
+                     yscrollcommand=self.SubjectScrollbarY.set,
+                     exportselection=0 )
+
+        self.UpdateSubjectListboxItems( False )
+
+        self.SubjectListbox.grid(row=row, rowspan=nRows, 
+                                 column=column, columnspan=nColumns,
+                                 sticky=N+S+E+W)
+        self.SubjectListbox.columnconfigure(column, weight=1)
+        self.SubjectListbox.rowconfigure(row, weight=1)
+
+        self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
+        self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
+
+        self.SubjectListbox.bind( '<<ListboxSelect>>', 
+                                 self.OnSubjectListboxSelect ) 
+ 
+ 
+    # --------------------------------------------------------------------
+    # OnSubjectListboxSelect
+    # --------------------------------------------------------------------
+
+    def OnSubjectListboxSelect(self, val):
+      
+        sender = val.widget
+
+        idx = sender.curselection()
+        value = sender.get(idx).split( ', ' )   
+
+        self.idIndividual = value[2]
+        
+        self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnAddFather
+    # --------------------------------------------------------------------
+
+    def OnAddFather(self):
+      
+        self.idSelectedFather = None
+        d = DialogSelectSubject( self.master, self.ftXML, 'Select a father',
+                                 self.OnSelectedFather, self.OnSelectedFatherCancel,
+                                 'M' )
+
+        print 'Selected father:', '"' + self.idSelectedFather + '"'
+
+        # Create a new father?
+        
+        if ( self.idSelectedFather is None ):
+
+            return
+
+        elif ( self.idSelectedFather == '***  New Individual ***' ):
+
+            print 'Creating a new father'
+            self.idSelectedFather = self.GetNewIndividual()
+
+        else:
+
+            value = self.idSelectedFather.split( ', ' )   
+            self.idSelectedFather = value[2]
+            
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedFather
+    # --------------------------------------------------------------------
+
+    def OnSelectedFather(self, val):
+
+        sender = val.widget
+
+        idx = sender.curselection()
+
+        self.idSelectedFather = sender.get(idx)
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedFatherCancel
+    # --------------------------------------------------------------------
+
+    def OnSelectedFatherCancel(self):
+
+        self.idSelectedFather = None
+        
+
+    # --------------------------------------------------------------------
+    # OnGoToFather
+    # --------------------------------------------------------------------
+
+    def OnGoToFather(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
+
+        if ( father is not None ):
+            self.idIndividual = self.ftGraph.GetIndividualID( father )
+            self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnAddMother
+    # --------------------------------------------------------------------
+
+    def OnAddMother(self):
+      
+        print 'OnAddMother'
+        
+
+    # --------------------------------------------------------------------
+    # OnGoToMother
+    # --------------------------------------------------------------------
+
+    def OnGoToMother(self):
+      
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
+
+        if ( mother is not None ):
+            self.idIndividual = self.ftGraph.GetIndividualID( mother )
+            self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnAddSpouse
+    # --------------------------------------------------------------------
+
+    def OnAddSpouse(self):
+      
+        print 'OnAddSpouse'
+        
+
+    # --------------------------------------------------------------------
+    # OnGoToSpouse
+    # --------------------------------------------------------------------
+
+    def OnGoToSpouse(self):
+      
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        spouse, idFamilySpouse, dateMarriage = self.ftGraph.GetSpouse( theIndividual )
+
+        if ( spouse is not None ):
+            self.idIndividual = self.ftGraph.GetIndividualID( spouse )
+            self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # InitialiseSelectedSubject
+    # --------------------------------------------------------------------
+
+    def InitialiseSelectedSubject(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        self.varSelectedID.set( theIndividual.attrib['id'] )
+        self.varSelectedFamilySpouseID.set( theIndividual.findtext('FAMILY_SPOUSE') )
+        self.varSelectedFamilyChildID.set( theIndividual.findtext('FAMILY_CHILD') )
+
+        self.varSelectedLastName.set( theIndividual.findtext('NAME/surname') or '' )
+        self.varSelectedFirstName.set( theIndividual.findtext('NAME/forename') or '' )
+
+        self.varSelectedSex.set( theIndividual.findtext('SEX') or '' )
+
+        self.varSelectedBirthDay.set(   theIndividual.findtext('BIRTH/DATE/day') or '' )
+        self.varSelectedBirthMonth.set( theIndividual.findtext('BIRTH/DATE/month') or '' )
+        self.varSelectedBirthYear.set(  theIndividual.findtext('BIRTH/DATE/year') or '' )
+
+        self.varSelectedDeathDay.set(   theIndividual.findtext('DEATH/DATE/day') or '' )
+        self.varSelectedDeathMonth.set( theIndividual.findtext('DEATH/DATE/month') or '' )
+        self.varSelectedDeathYear.set(  theIndividual.findtext('DEATH/DATE/year') or '' )
+
+        self.varSelectedSpouse.set( theIndividual.findtext( 'FAMILY_SPOUSE' ) )
+
+
+    # --------------------------------------------------------------------
+    # UpdateSelectedSubject
+    # --------------------------------------------------------------------
+
+    def UpdateSelectedSubject(self):
+
+        self.InitialiseSelectedSubject()
+
+        self.UpdateFatherButton()        
+        self.UpdateMotherButton()        
+        self.UpdateSpouseButton()        
+
+
+    # --------------------------------------------------------------------
+    # UpdateFatherButton
+    # --------------------------------------------------------------------
+
+    def UpdateFatherButton(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
+
+        if ( father is None ):
+
+            self.buttonFather['text'] = 'Add Father'
+            self.buttonFather['command'] = self.OnAddFather
+
+        else:
+
+            self.buttonFather['text'] = self.ftGraph.GetName( father )
+            self.buttonFather['command'] = self.OnGoToFather
+
+
+    # --------------------------------------------------------------------
+    # UpdateMotherButton
+    # --------------------------------------------------------------------
+
+    def UpdateMotherButton(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
+
+        if ( mother is None ):
+
+            self.buttonMother['text'] = 'Add Mother'
+            self.buttonMother['command'] = self.OnAddMother
+
+        else:
+
+            self.buttonMother['text'] = self.ftGraph.GetName( mother )
+            self.buttonMother['command'] = self.OnGoToMother
+
+
+    # --------------------------------------------------------------------
+    # UpdateSpouseButton
+    # --------------------------------------------------------------------
+
+    def UpdateSpouseButton(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        spouse, idFamilySpouse, dateMarriage = self.ftGraph.GetSpouse( theIndividual )
+
+        if ( spouse is None ):
+
+            self.buttonSpouse['text'] = 'Add Spouse'
+            self.buttonSpouse['command'] = self.OnAddSpouse
+
+        else:
+
+            self.buttonSpouse['text'] = self.ftGraph.GetName( spouse )
+            self.buttonSpouse['command'] = self.OnGoToSpouse
+
+
+    # --------------------------------------------------------------------
+    # UpdateSubjectListboxItems
+    # --------------------------------------------------------------------
+
+    def UpdateSubjectListboxItems(self, flgActivateSelectedIndividual):
+
+        self.SubjectListbox.delete( 0, END )
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        labels = []
+        theLabel  = None
+        for individual in self.ftGraph.GetIndividuals():
+
+            idIndividual = individual.attrib['id']
+            forename = individual.findtext('NAME/forename') or ''
+            surname  = individual.findtext('NAME/surname') or ''
+
+            label = ', '.join( [ surname, forename, idIndividual,  ] )
+            labels.append( label )
+
+            if ( individual == theIndividual ):
+                theLabel = label
+
+        labels = sorted( labels )
+
+        index = None
+        for label in labels:
+            self.SubjectListbox.insert( END, label )
+
+            if ( flgActivateSelectedIndividual and ( label == theLabel ) ):
+
+                self.SubjectListbox.selection_set( END )
+                index = self.SubjectListbox.curselection()
+
+        if ( index is not None ):
+            self.SubjectListbox.see( index )
+
+
+        if ( False and flgActivateSelectedIndividual ):
+            self.PlotIndividual( theIndividual, True, True, True, True )
+            self.graph.write_gif( 'FamilyTree.gif' )
+
+            imFamilyTree = PhotoImage( file='FamilyTree.gif' )
+
+                
+    # --------------------------------------------------------------------
+    # OnFirstNameEdited
+    # --------------------------------------------------------------------
+
+    def OnFirstNameEdited(self, *args):
+
+        self.ftGraph.SetFirstName( self.idIndividual, self.varSelectedFirstName.get() )
+        self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnLastNameEdited
+    # --------------------------------------------------------------------
+
+    def OnLastNameEdited(self, *args):
+
+        self.ftGraph.SetLastName( self.idIndividual, self.varSelectedLastName.get() )
+        self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnSexOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnSexOptionSelect(self, *args):
+
+        self.ftGraph.SetSex( self.idIndividual, self.varSelectedSex.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnBirthDayOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnBirthDayOptionSelect(self, *args):
+
+        self.ftGraph.SetBirthDay( self.idIndividual, self.varSelectedBirthDay.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnBirthMonthOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnBirthMonthOptionSelect(self, *args):
+
+        self.ftGraph.SetBirthMonth( self.idIndividual, self.varSelectedBirthMonth.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnBirthYearEdited
+    # --------------------------------------------------------------------
+
+    def OnBirthYearEdited(self, *args):
+
+        self.ftGraph.SetBirthYear( self.idIndividual, self.varSelectedBirthYear.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnDeathDayOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnDeathDayOptionSelect(self, *args):
+
+        self.ftGraph.SetDeathDay( self.idIndividual, self.varSelectedDeathDay.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnDeathMonthOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnDeathMonthOptionSelect(self, *args):
+
+        self.ftGraph.SetDeathMonth( self.idIndividual, self.varSelectedDeathMonth.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnDeathYearEdited
+    # --------------------------------------------------------------------
+
+    def OnDeathYearEdited(self, *args):
+
+        self.ftGraph.SetDeathYear( self.idIndividual, self.varSelectedDeathYear.get() )
+
+
+    # --------------------------------------------------------------------
+    # GetNewIndividual
+    # --------------------------------------------------------------------
+
+    def GetNewIndividual( self ):
+
+        theIndividual = self.ftGraph.CreateIndividual( None, None )
+
+        self.UpdateSelectedSubject()
+        self.UpdateSubjectListboxItems( True )
+        
+        return self.ftGraph.GetIndividualID( theIndividual )
+
+
+    # --------------------------------------------------------------------
+    # OnNewSubject
+    # --------------------------------------------------------------------
+
+    def OnNewSubject( self ):
+
+        theIndividual = self.ftGraph.CreateIndividual( None, None )
+        
+        self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
+
+        self.UpdateSelectedSubject()
+        self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnDeleteSubject
+    # --------------------------------------------------------------------
+
+    def OnDeleteSubject( self ):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        label = self.idIndividual
+
+        forename = self.ftGraph.GetForename( theIndividual )
+        surname = self.ftGraph.GetSurname( theIndividual )
+
+        if ( not forename is None ):
+            label = label + ' ' + forename
+
+        if ( not surname is None ):
+            label = label + ' ' + surname
+
+        if ( tkMessageBox.askyesno( "Delete", 
+                                    "Delete subject: " + label + "?",
+                                    default='yes' ) and
+             tkMessageBox.askyesno( "Delete", 
+                                    "Are you sure you want to delete subject: "  + label + "?",
+                                    default='no' ) ):
+
+            self.idIndividual = self.ftGraph.DeleteIndividual( self.idIndividual )
+
+            if ( self.idIndividual is None ):
+            
+                theIndividual = self.ftGraph.CreateIndividual()
+                self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
+
+            self.UpdateSelectedSubject()
+            self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnKeypress
+    # --------------------------------------------------------------------
+
+    def OnKeypress( self, event ):
+        
+        print "OnKeypress(): ", event.keysym
+
+
+
+
+
+
+# ========================================================================
+# Main()
+# ========================================================================
+
+
+# Parse the command line
+# ~~~~~~~~~~~~~~~~~~~~~~
+
+parser = argparse.ArgumentParser(description='Family tree processing.')
+
+parser.add_argument( '-i', dest='fileIn',  help='Input XML family tree file')
+parser.add_argument( '-o', dest='fileOut', help='Output XML family tree file')
+
+args = parser.parse_args()
+
+
+print 'Input XML family tree file:', args.fileIn
+print 'Output family tree image:', args.fileOut
+
+
+if ( args.fileIn is not None ):
+    
+    ft = ET.parse( args.fileIn ).getroot()
+
+else:
+
+    ft = ET.Element( 'FamilyTree' )
+
+root = Tk()
+
+root.attributes("-topmost", True)
+root.attributes("-topmost", False)
+
+root.geometry('{}x{}'.format(1200, 900))
+
+app = Application( root, ft, args.fileOut )
+app.mainloop()
+root.destroy()
+
