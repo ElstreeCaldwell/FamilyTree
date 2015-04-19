@@ -29,24 +29,32 @@ import FamilyTreeGraph as FTG
 
 class DialogSelectSubject:
 
-    def __init__( self, parent, ftXML, instruction,
+    def __init__( self, parent, ftGraph, instruction,
                   fnCallbackSelection, fnCallbackClear,
-                  sexCriterion ):
+                  sexCriterion=None, idExclusionList=None ):
 
-        self.top = Toplevel(parent)
-        self.top.geometry( '{}x{}'.format( 300, 900 ) )
-
-        self.ftGraph = FTG.FamilyTreeGraph( ftXML )
-
+        self.ftGraph = ftGraph
         self.instruction = instruction
         self.callback = fnCallbackSelection
         self.callbackClear = fnCallbackClear
         self.sexCriterion = sexCriterion
+        self.idExclusionList = idExclusionList
+
+        # Do we have any individuals to display?
+
+        self.labels = self.GetLabels( )
+
+        if ( len( self.labels ) == 0 ):
+            fnCallbackSelection( None )
+            return
+
+        # Yes...
+
+        self.top = Toplevel(parent)
+        self.top.geometry( '{}x{}'.format( 300, 900 ) )
 
         self.top.columnconfigure(0, weight=1)
         self.top.rowconfigure(0, weight=1)	
-
-        self.idIndividual = None
 
         self.CreateSubjectListbox()
          
@@ -81,7 +89,7 @@ class DialogSelectSubject:
                      exportselection=0 )
         self.SubjectListbox.pack(fill=BOTH, expand=1)
 
-        self.UpdateSubjectListboxItems( False )
+        self.UpdateSubjectListboxItems( )
 
         self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
         self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
@@ -90,52 +98,36 @@ class DialogSelectSubject:
                                   self.callback ) 
 
 
-    def OnSubjectListboxSelect(self, val):
-      
-        sender = val.widget
-
-        idx = sender.curselection()
-        value = sender.get(idx).split( ', ' )   
-
-        self.idIndividual = value[2]
-        
-
-    def UpdateSubjectListboxItems(self, flgActivateSelectedIndividual):
-
-        self.SubjectListbox.delete( 0, END )
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+    def GetLabels(self):
 
         labels = []
-        theLabel  = None
+
         for individual in self.ftGraph.GetIndividuals():
 
-            if (  ( self.sexCriterion is None ) or
-                  ( individual.findtext('SEX') == self.sexCriterion ) ):
+            idIndi = individual.attrib['id']
 
-                idIndividual = individual.attrib['id']
+            if (  ( ( self.sexCriterion is None ) or
+                    ( individual.findtext('SEX') == self.sexCriterion ) ) and
+                  ( ( self.idExclusionList is None ) or
+                    ( not idIndi in self.idExclusionList ) ) ):
+
                 forename = individual.findtext('NAME/forename') or ''
                 surname  = individual.findtext('NAME/surname') or ''
 
-                label = ', '.join( [ surname, forename, idIndividual,  ] )
+                label = ', '.join( [ surname, forename, idIndi,  ] )
                 labels.append( label )
 
-                if ( individual == theIndividual ):
-                    theLabel = label
+        return labels
+        
 
-        labels = [ '***  New Individual ***' ] + sorted( labels )
+    def UpdateSubjectListboxItems(self):
 
-        index = None
+        self.SubjectListbox.delete( 0, END )
+
+        labels = [ '***  New Individual ***' ] + sorted( self.labels )
+
         for label in labels:
             self.SubjectListbox.insert( END, label )
-
-            if ( flgActivateSelectedIndividual and ( label == theLabel ) ):
-
-                self.SubjectListbox.selection_set( END )
-                index = self.SubjectListbox.curselection()
-
-        if ( index is not None ):
-            self.SubjectListbox.see( index )
         
 
     def OnOK( self ):
@@ -146,6 +138,10 @@ class DialogSelectSubject:
 
         self.callbackClear()
         self.top.destroy()
+
+
+
+
 
 
 # ========================================================================
@@ -535,11 +531,9 @@ class Application( Frame ):
     def OnAddFather(self):
       
         self.idSelectedFather = None
-        d = DialogSelectSubject( self.master, self.ftXML, 'Select a father',
+        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a father',
                                  self.OnSelectedFather, self.OnSelectedFatherCancel,
-                                 'M' )
-
-        print 'Selected father:', '"' + self.idSelectedFather + '"'
+                                 'M', [ self.idIndividual ] )
 
         # Create a new father?
         
@@ -549,14 +543,19 @@ class Application( Frame ):
 
         elif ( self.idSelectedFather == '***  New Individual ***' ):
 
-            print 'Creating a new father'
             self.idSelectedFather = self.GetNewIndividual()
-
+            
         else:
 
             value = self.idSelectedFather.split( ', ' )   
             self.idSelectedFather = value[2]
+
+        # Set the father
             
+        self.ftGraph.SetSex( self.idSelectedFather, 'M' )
+        self.ftGraph.SetFather( self.idIndividual, self.idSelectedFather ) 
+        self.UpdateSelectedSubject()
+
 
 
     # --------------------------------------------------------------------
@@ -565,11 +564,18 @@ class Application( Frame ):
 
     def OnSelectedFather(self, val):
 
-        sender = val.widget
+        # If val is None then this means there were non individuals to
+        # choose from so a new one should be created
 
-        idx = sender.curselection()
+        if ( val is None ):
+            self.idSelectedFather = '***  New Individual ***'
 
-        self.idSelectedFather = sender.get(idx)
+        else:
+            sender = val.widget
+
+            idx = sender.curselection()
+
+            self.idSelectedFather = sender.get(idx)
 
 
     # --------------------------------------------------------------------
@@ -595,13 +601,68 @@ class Application( Frame ):
             self.UpdateSelectedSubject()
 
 
+
     # --------------------------------------------------------------------
     # OnAddMother
     # --------------------------------------------------------------------
 
     def OnAddMother(self):
       
-        print 'OnAddMother'
+        self.idSelectedMother = None
+        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a mother',
+                                 self.OnSelectedMother, self.OnSelectedMotherCancel,
+                                 'F', [ self.idIndividual ] )
+
+        # Create a new mother?
+        
+        if ( self.idSelectedMother is None ):
+
+            return
+
+        elif ( self.idSelectedMother == '***  New Individual ***' ):
+
+            self.idSelectedMother = self.GetNewIndividual()
+            
+        else:
+
+            value = self.idSelectedMother.split( ', ' )   
+            self.idSelectedMother = value[2]
+
+        # Set the mother
+            
+        self.ftGraph.SetSex( self.idSelectedMother, 'F' )
+        self.ftGraph.SetMother( self.idIndividual, self.idSelectedMother ) 
+        self.UpdateSelectedSubject()
+
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedMother
+    # --------------------------------------------------------------------
+
+    def OnSelectedMother(self, val):
+
+        # If val is None then this means there were non individuals to
+        # choose from so a new one should be created
+
+        if ( val is None ):
+            self.idSelectedMother = '***  New Individual ***'
+
+        else:
+            sender = val.widget
+
+            idx = sender.curselection()
+
+            self.idSelectedMother = sender.get(idx)
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedMotherCancel
+    # --------------------------------------------------------------------
+
+    def OnSelectedMotherCancel(self):
+
+        self.idSelectedMother = None
         
 
     # --------------------------------------------------------------------
@@ -609,7 +670,7 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnGoToMother(self):
-      
+
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
 
@@ -623,8 +684,83 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnAddSpouse(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        sex = theIndividual.findtext('SEX')
+
+        self.idSelectedSpouse = None
+
+        if ( sex == 'M' ):
       
-        print 'OnAddSpouse'
+            d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
+                                     self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
+                                     'F', [ self.idIndividual ] )
+        elif ( sex == 'F' ):
+      
+            d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
+                                     self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
+                                     'M', [ self.idIndividual ] )
+        else:
+
+            tkMessageBox.showwarning( 'Warning', 
+                                      'Please set the gender of this subject before adding a spouse.' )
+            return
+            
+        # Create a new spouse?
+        
+        if ( self.idSelectedSpouse is None ):
+
+            return
+
+        elif ( self.idSelectedSpouse == '***  New Individual ***' ):
+
+            self.idSelectedSpouse = self.GetNewIndividual()
+            
+        else:
+
+            value = self.idSelectedSpouse.split( ', ' )   
+            self.idSelectedSpouse = value[2]
+
+        # Set the spouse
+
+        if ( sex == 'M' ):
+            self.ftGraph.SetSex( self.idSelectedSpouse, 'F' )
+        elif ( sex == 'F' ):
+            self.ftGraph.SetSex( self.idSelectedSpouse, 'M' )
+            
+        self.ftGraph.SetSpouse( self.idIndividual, self.idSelectedSpouse ) 
+        self.UpdateSelectedSubject()
+
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedSpouse
+    # --------------------------------------------------------------------
+
+    def OnSelectedSpouse(self, val):
+
+        # If val is None then this means there were non individuals to
+        # choose from so a new one should be created
+
+        if ( val is None ):
+            self.idSelectedSpouse = '***  New Individual ***'
+
+        else:
+            sender = val.widget
+
+            idx = sender.curselection()
+
+            self.idSelectedSpouse = sender.get(idx)
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedSpouseCancel
+    # --------------------------------------------------------------------
+
+    def OnSelectedSpouseCancel(self):
+
+        self.idSelectedSpouse = None
         
 
     # --------------------------------------------------------------------

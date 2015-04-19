@@ -180,6 +180,21 @@ class FamilyTreeXML( object ):
     
     
     # ----------------------------------------------------------------------
+    def GetOppositeSex( self, sex ):
+
+        if ( sex == 'F' ):
+            return 'M'
+
+        elif ( sex == 'M' ):
+            return 'F'
+
+        else:
+            return None
+
+    # ----------------------------------------------------------------------
+    
+    
+    # ----------------------------------------------------------------------
     def GetWife( self, individual ):
     
         sex = individual.findtext('SEX')
@@ -321,6 +336,25 @@ class FamilyTreeXML( object ):
             idIndi = 'I{:03d}'.format ( i )
 
         return ET.SubElement( self.ftXML, 'INDIVIDUAL', { 'id': idIndi } )
+    # ----------------------------------------------------------------------
+    
+            
+    # ----------------------------------------------------------------------
+    def CreateFamily( self ):
+
+        ids = []
+        for family in self.GetFamilies():
+            ids.append( family.attrib['id'] )
+
+        i = 1
+        idFamily = 'F{:03d}'.format ( i )
+        while ( idFamily in ids ):
+            i = i + 1
+            idFamily = 'F{:03d}'.format ( i )
+
+        print 'idFamily', idFamily
+
+        return ET.SubElement( self.ftXML, 'FAMILY', { 'id': idFamily } )
     # ----------------------------------------------------------------------
     
             
@@ -473,7 +507,7 @@ class FamilyTreeXML( object ):
             eBirth = theIndividual.find('BIRTH')
 
             if ( eBirth is None ):
-                eBirth = ET.SubElement(theIndividual, 'BIRTH' )
+                eBirth = ET.SubElement( theIndividual, 'BIRTH' )
 
             eBirthDate = eBirth.find('DATE')
 
@@ -611,5 +645,179 @@ class FamilyTreeXML( object ):
                 eDeathYear = ET.SubElement(eDeathDate, 'year' )
 
             eDeathYear.text = year
+    
+            
+    # ----------------------------------------------------------------------
+    def SetFather( self, idIndividual, idFather ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+        theFather     = self.GetIndividual( idFather )
+
+        if ( not theIndividual is None ):
+
+            idFamily  = theIndividual.findtext('FAMILY_CHILD')
+        
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+
+                eChild = ET.SubElement( family, 'CHILD' )
+                eChild.text = idIndividual
+
+                eFamilyChild = ET.SubElement( theIndividual, 'FAMILY_CHILD' )
+                eFamilyChild.text = idFamily
+                
+                families = [ family ]
+
+            else:
+
+                families = self.GetFamilyWithID( idFamily )
 
 
+            for family in families:
+
+                eHusband = family.find( 'HUSBAND' )
+
+                if ( eHusband is None ):
+                    eHusband = ET.SubElement( family, 'HUSBAND' )
+                        
+                eHusband.text = idFather
+
+
+            eFamilySpouse = theFather.find( 'FAMILY_SPOUSE' )
+            
+            if ( eFamilySpouse is None ):
+                eFamilySpouse = ET.SubElement( theFather, 'FAMILY_SPOUSE' )
+
+            eFamilySpouse.text = idFamily
+
+        else:
+            print 'SetFather(', idIndividual, idFather, ') Individual is none:'
+
+
+    # ----------------------------------------------------------------------
+    def SetMother( self, idIndividual, idMother ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+        theMother     = self.GetIndividual( idMother )
+
+        if ( not theIndividual is None ):
+
+            idFamily  = theIndividual.findtext('FAMILY_CHILD')
+        
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+                
+                eChild = ET.SubElement( family, 'CHILD' )
+                eChild.text = idIndividual
+
+                eFamilyChild = ET.SubElement( theIndividual, 'FAMILY_CHILD' )
+                eFamilyChild.text = idFamily
+                
+                families = [ family ]
+
+            else:
+
+                families = self.GetFamilyWithID( idFamily )
+
+
+            for family in families:
+
+                eWife = family.find( 'WIFE' )
+
+                if ( eWife is None ):
+                    eWife = ET.SubElement( family, 'WIFE' )
+                        
+                eWife.text = idMother
+
+
+            eFamilySpouse = theMother.find( 'FAMILY_SPOUSE' )
+            
+            if ( eFamilySpouse is None ):
+                eFamilySpouse = ET.SubElement( theMother, 'FAMILY_SPOUSE' )
+
+            eFamilySpouse.text = idFamily
+
+        else:
+            print 'SetMother(', idIndividual, idMother, ') Individual is none:'
+
+
+    # ----------------------------------------------------------------------
+    def SetSpouse( self, idIndividual, idSpouse ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+        theSpouse     = self.GetIndividual( idSpouse )
+
+        if ( not theIndividual is None ):
+
+            sexIndividual = theIndividual.findtext('SEX')
+            sexSpouse     = theSpouse.findtext('SEX')
+
+            if ( ( sexIndividual is None ) and ( sexSpouse is None ) ):
+                print 'SetSpouse(', idIndividual, idSpouse, ') Genders not set, cannot set spouse'
+                return
+
+            if ( ( sexIndividual == 'M' ) and ( sexSpouse == 'M' ) ):
+                print 'SetSpouse(', idIndividual, idSpouse, ') Genders are both male'
+                return
+            elif ( ( sexIndividual == 'F' ) and ( sexSpouse == 'F' ) ):
+                print 'SetSpouse(', idIndividual, idSpouse, ') Genders are both female'
+                return
+
+            if ( ( sexIndividual is None ) and ( not sexSpouse is None ) ):
+                sexIndividual = self.GetOppositeSex( sexSpouse )
+                self.SetSex( theIndividual, sexIndividual )
+
+            if ( ( sexSpouse is None ) and ( not sexIndividual is None ) ):
+                sexSpouse = self.GetOppositeSex( sexIndividual )
+                self.SetSex( theSpouse, sexSpouse )
+
+
+            idFamily  = theIndividual.findtext('FAMILY_SPOUSE')
+
+            if ( idFamily is None ):
+                idFamily  = theSpouse.findtext('FAMILY_SPOUSE')                
+        
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                families = [ family ]
+
+            else:
+
+                families = self.GetFamilyWithID( idFamily )
+
+
+            for family in families:
+
+                idFamily = family.attrib['id']
+
+                eWife =  family.find( 'WIFE' )
+
+                if ( eWife is None ):                
+                    eWife = ET.SubElement( family, 'WIFE' )
+
+                eHusband = family.find( 'HUSBAND' )
+
+                if ( eHusband is None ):
+                    eHusband = ET.SubElement( family, 'HUSBAND' )
+
+                if ( sexIndividual == 'F' ):
+                    eWife.text = idIndividual
+                    eHusband.text = idSpouse
+                else:
+                    eWife.text = idSpouse
+                    eHusband.text = idIndividual
+
+                eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+                eFamilySpouse.text = idFamily
+
+                eFamilySpouse = ET.SubElement( theSpouse, 'FAMILY_SPOUSE' )
+                eFamilySpouse.text = idFamily
+                
+
+        else:
+            print 'SetSpouse(', idIndividual, idSpouse, ') Individual is none:'
