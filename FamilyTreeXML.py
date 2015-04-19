@@ -897,6 +897,74 @@ class FamilyTreeXML( object ):
         else:
             print 'SetSpouse(', idIndividual, idSpouse, ') Individual is none:'
 
+
+    # ----------------------------------------------------------------------
+    def SetChild( self, idIndividual, idChild ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+        theChild = self.GetIndividual( idChild )
+
+        sexIndividual = theIndividual.findtext('SEX')
+
+        print 'theIndividual', ET.dump( theIndividual )
+
+        # Does the parent have a family already?
+
+        idFamily  = theIndividual.findtext('FAMILY_SPOUSE')
+
+        # If not then perhaps the child
+
+        if ( idFamily is None ):
+
+            idFamily  = theChild.findtext('FAMILY_CHILD')
+
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+
+            for family in self.GetFamilyWithID( idFamily ):
+
+                eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+                eFamilySpouse.text = idFamily
+
+                if ( sexIndividual == 'F' ):
+                    eWife = ET.SubElement( family, 'WIFE' )
+                    eWife.text = idIndividual
+                else:
+                    eHusband = ET.SubElement( family, 'HUSBAND' )
+                    eHusband.text = idIndividual
+                    
+        # Parent has a family so add the child
+
+        flgChildFound = False
+            
+        for family in self.GetFamilyWithID( idFamily ):
+
+            for child in family.findall( 'CHILD' ):
+    
+                if ( child.text == idChild ):
+                    flgChildFound = True
+
+            if ( not flgChildFound ):
+
+                eFamilyChild = ET.SubElement( family, 'CHILD' )
+                eFamilyChild.text = idChild
+            
+            if ( sexIndividual == 'F' ):
+                eWife = ET.SubElement( family, 'WIFE' )
+                eWife.text = idIndividual
+            else:
+                eHusband = ET.SubElement( family, 'HUSBAND' )
+                eHusband.text = idIndividual
+
+        eChild = theChild.find( 'FAMILY_CHILD' )
+
+        if ( eChild is None ):
+            eChild = ET.SubElement( theChild, 'FAMILY_CHILD' )
+
+        eChild.text = idFamily
+
             
     # ----------------------------------------------------------------------
     def RemoveParents( self, idIndividual ):
@@ -988,3 +1056,43 @@ class FamilyTreeXML( object ):
                 theIndividual.remove( eFamilySpouse )
                 print 'Removing family'
                 print 'theIndividual', ET.dump( theIndividual )
+
+
+    # ----------------------------------------------------------------------
+    def RemoveChild( self, idParent, idChild ):
+
+        theParent = self.GetIndividual( idParent )
+        theChild = self.GetIndividual( idChild )
+
+        print 'theParent', ET.dump( theParent )
+
+        if ( not theParent is None ):
+
+            idFamily  = theParent.findtext('FAMILY_SPOUSE')
+
+            if ( idFamily is None ):
+
+                idFamily  = theChild.findtext('FAMILY_CHILD')
+
+            if ( not idFamily is None ):
+
+                for family in self.GetFamilyWithID( idFamily ):
+
+                    print 'family', ET.dump( family )
+
+                    for child in family.findall( 'CHILD' ):
+    
+                        idc = child.text
+
+                        if ( idChild == idc ):
+
+                            family.remove( child )
+                            print 'Removing child', idChild, 'from family', idFamily
+
+
+                eFamilyChild = theChild.find('FAMILY_CHILD')
+
+                print 'eFamilyChild', ET.dump( eFamilyChild )
+                theChild.remove( eFamilyChild )
+                print 'Removing family'
+                print 'theChild', ET.dump( theChild )

@@ -31,14 +31,18 @@ class DialogSelectSubject:
 
     def __init__( self, parent, ftGraph, instruction,
                   fnCallbackSelection, fnCallbackClear,
-                  sexCriterion=None, idExclusionList=None ):
+                  prependExtraLabels=None,
+                  sexCriterion=None, idExclusionList=None,
+                  subjects=None ):
 
         self.ftGraph = ftGraph
         self.instruction = instruction
         self.callback = fnCallbackSelection
         self.callbackClear = fnCallbackClear
+        self.prependExtraLabels = prependExtraLabels
         self.sexCriterion = sexCriterion
         self.idExclusionList = idExclusionList
+        self.subjects = subjects
 
         # Do we have any individuals to display?
 
@@ -102,7 +106,10 @@ class DialogSelectSubject:
 
         labels = []
 
-        for individual in self.ftGraph.GetIndividuals():
+        if ( self.subjects is None ):
+            self.subjects = self.ftGraph.GetIndividuals()
+
+        for individual in self.subjects:
 
             idIndi = individual.attrib['id']
 
@@ -124,7 +131,10 @@ class DialogSelectSubject:
 
         self.SubjectListbox.delete( 0, END )
 
-        labels = [ '***  New Individual ***' ] + sorted( self.labels )
+        if ( not self.prependExtraLabels is None ):
+            labels = self.prependExtraLabels + sorted( self.labels )
+        else:
+            labels = sorted( self.labels )
 
         for label in labels:
             self.SubjectListbox.insert( END, label )
@@ -247,13 +257,12 @@ class Application( Frame ):
 
         days = [ '' ] + [str(x) for x in range( 1, 31 )]
 
-        self.CreateSubjectListbox()
+        self.CreateSubjectListbox( 0, 0)
 
         iRow = 22
         iCol = 0
         
         # New subject
-
         self.buttonNewSubject = Button(self)
         self.buttonNewSubject['text'] = 'New Subject'
         self.buttonNewSubject['command'] = self.OnNewSubject
@@ -262,8 +271,14 @@ class Application( Frame ):
 
 
 
-        iRow = 2
+        iRow = 0
         iCol = 4
+
+        # Subject
+        self.labelID = Label(self, text='Subject')        
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
+
+        iRow = iRow + 1
 
         # ID
         self.labelID = Label(self, text='ID:', anchor=W, justify=LEFT)        
@@ -278,7 +293,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # FamilySpouse
-        self.labelFamilySpouseID = Label(self, text='FID Spouse:', anchor=W, justify=LEFT)        
+        self.labelFamilySpouseID = Label(self, text='Spouse Family:', anchor=W, justify=LEFT)        
         self.labelFamilySpouseID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedFamilySpouseID = \
@@ -290,7 +305,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
        # FamilyChild
-        self.labelFamilyChildID = Label(self, text='FID Child:', anchor=W, justify=LEFT)        
+        self.labelFamilyChildID = Label(self, text='Child Family:', anchor=W, justify=LEFT)        
         self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedFamilyChildID = \
@@ -394,7 +409,6 @@ class Application( Frame ):
         iRow = 22
         
         # Delete subject
-
         self.buttonDeleteSubject = Button(self)
         self.buttonDeleteSubject['text'] = 'Delete Subject'
         self.buttonDeleteSubject['command'] = self.OnDeleteSubject
@@ -403,8 +417,14 @@ class Application( Frame ):
 
 
 
-        iRow = 2
+        iRow = 1
         iCol = iCol + 4
+
+        # Parents
+        self.labelID = Label(self, text='Parents')        
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S)
+
+        iRow = iRow + 1
 
         # Father
         self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)        
@@ -428,25 +448,26 @@ class Application( Frame ):
 
         iRow = iRow + 1
 
-        # Spouse
-        self.labelSpouse = Label(self, text='Spouse:', anchor=W, justify=LEFT)        
-        self.labelSpouse.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.buttonAddSpouse = Button(self)
-        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
-
-        self.UpdateSpouseButtonAdd()
-
-
-
-        iRow = iRow + 4
-
         # Remove Parents
         self.buttonRemoveParents = Button(self)
         self.buttonRemoveParents['text'] = 'Remove Parents'
         self.buttonRemoveParents['command'] =  self.OnRemoveParents
 
-        self.buttonRemoveParents.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+        self.buttonRemoveParents.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+
+        iRow = iRow + 2
+
+        # Spouse
+        self.labelID = Label(self, text='Spouse')        
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S)
+
+        iRow = iRow + 1
+
+        self.buttonAddSpouse = Button(self)
+        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+        self.UpdateSpouseButtonAdd()
 
         iRow = iRow + 1
 
@@ -455,14 +476,40 @@ class Application( Frame ):
         self.buttonRemoveSpouse['text'] = 'Remove Spouse'
         self.buttonRemoveSpouse['command'] =  self.OnRemoveSpouse
 
-        self.buttonRemoveSpouse.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+        self.buttonRemoveSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+
+        iRow = iRow + 1
 
 
 
-        iRow = 22
+        iRow = 1
+        iCol = iCol + 2
+
+        # Children
+        self.CreateChildrenListbox( iCol, iRow )
+
+        iRow = 21
+
+        # Add child
+        self.buttonAddChild = Button(self)
+        self.buttonAddChild['text'] = 'Add Child'
+        self.buttonAddChild['command'] = self.OnAddChild
+        
+        self.buttonAddChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
+        # Remove child
+        self.buttonRemoveChild = Button(self)
+        self.buttonRemoveChild['text'] = 'Remove Child'
+        self.buttonRemoveChild['command'] = self.OnRemoveChild
+        
+        self.buttonRemoveChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
 
         # Quit
-
         self.buttonQuit = Button(self)
         self.buttonQuit['text'] = 'QUIT'
         self.buttonQuit['fg']   = 'red'
@@ -482,26 +529,23 @@ class Application( Frame ):
     # CreateSubjectListbox
     # --------------------------------------------------------------------
 
-    def CreateSubjectListbox(self):
+    def CreateSubjectListbox(self, column, row):
 
-        column = 0
         nColumns = 2
-
-        row = 1
         nRows = 20
 
         self.labelSubject = Label(self, text='Subjects')        
-        self.labelSubject.grid(row=row-1, column=column, 
+        self.labelSubject.grid(row=row, column=column, 
                                columnspan=nColumns, sticky=N+S)
 
         self.SubjectScrollbarY = Scrollbar(self, orient=VERTICAL)
-        self.SubjectScrollbarY.grid(row=row, column=column+nColumns,
+        self.SubjectScrollbarY.grid(row=row+1, column=column+nColumns,
                                     rowspan=nRows, 
                                     sticky=N+S)
-        self.SubjectScrollbarY.rowconfigure(row, weight=1)
+        self.SubjectScrollbarY.rowconfigure(row+1, weight=1)
         
         self.SubjectScrollbarX = Scrollbar(self, orient=HORIZONTAL)
-        self.SubjectScrollbarX.grid(row=row+nRows, column=column,
+        self.SubjectScrollbarX.grid(row=row+nRows+1, column=column,
                                     columnspan=nColumns, 
                                     sticky=E+W)
 
@@ -513,11 +557,11 @@ class Application( Frame ):
 
         self.UpdateSubjectListboxItems( False )
 
-        self.SubjectListbox.grid(row=row, rowspan=nRows, 
+        self.SubjectListbox.grid(row=row+1, rowspan=nRows, 
                                  column=column, columnspan=nColumns,
                                  sticky=N+S+E+W)
         self.SubjectListbox.columnconfigure(column, weight=1)
-        self.SubjectListbox.rowconfigure(row, weight=1)
+        self.SubjectListbox.rowconfigure(row+1, weight=1)
 
         self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
         self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
@@ -527,10 +571,71 @@ class Application( Frame ):
  
  
     # --------------------------------------------------------------------
+    # CreateChildrenListbox
+    # --------------------------------------------------------------------
+
+    def CreateChildrenListbox(self, column, row):
+
+        nColumns = 2
+        nRows = 18
+
+        self.labelChildren = Label(self, text='Children')        
+        self.labelChildren.grid(row=row, column=column, 
+                               columnspan=nColumns, sticky=N+S)
+
+        self.ChildrenScrollbarY = Scrollbar(self, orient=VERTICAL)
+        self.ChildrenScrollbarY.grid(row=row+1, column=column+nColumns,
+                                    rowspan=nRows, 
+                                    sticky=N+S)
+        self.ChildrenScrollbarY.rowconfigure(row+1, weight=1)
+        
+        self.ChildrenScrollbarX = Scrollbar(self, orient=HORIZONTAL)
+        self.ChildrenScrollbarX.grid(row=row+nRows+1, column=column,
+                                    columnspan=nColumns, 
+                                    sticky=E+W)
+
+        self.ChildrenListbox = \
+            Listbox( self, selectmode=SINGLE,
+                     xscrollcommand=self.ChildrenScrollbarX.set,
+                     yscrollcommand=self.ChildrenScrollbarY.set,
+                     exportselection=0 )
+
+        self.UpdateChildrenListboxItems()
+
+        self.ChildrenListbox.grid(row=row+1, rowspan=nRows, 
+                                 column=column, columnspan=nColumns,
+                                 sticky=N+S+E+W)
+        self.ChildrenListbox.columnconfigure(column, weight=1)
+        self.ChildrenListbox.rowconfigure(row+1, weight=1)
+
+        self.ChildrenScrollbarX['command'] = self.ChildrenListbox.xview
+        self.ChildrenScrollbarY['command'] = self.ChildrenListbox.yview
+
+        self.ChildrenListbox.bind( '<<ListboxSelect>>', 
+                                 self.OnChildrenListboxSelect ) 
+ 
+ 
+    # --------------------------------------------------------------------
     # OnSubjectListboxSelect
     # --------------------------------------------------------------------
 
     def OnSubjectListboxSelect(self, val):
+      
+        sender = val.widget
+
+        idx = sender.curselection()
+        value = sender.get(idx).split( ', ' )   
+
+        self.idIndividual = value[2]
+        
+        self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnChildrenListboxSelect
+    # --------------------------------------------------------------------
+
+    def OnChildrenListboxSelect(self, val):
       
         sender = val.widget
 
@@ -551,6 +656,7 @@ class Application( Frame ):
         self.idSelectedFather = None
         d = DialogSelectSubject( self.master, self.ftGraph, 'Select a father',
                                  self.OnSelectedFather, self.OnSelectedFatherCancel,
+                                 [ '***  New Individual ***' ],
                                  'M', [ self.idIndividual ] )
 
         # Create a new father?
@@ -590,7 +696,6 @@ class Application( Frame ):
 
         else:
             sender = val.widget
-
             idx = sender.curselection()
 
             self.idSelectedFather = sender.get(idx)
@@ -619,7 +724,6 @@ class Application( Frame ):
             self.UpdateSelectedSubject()
 
 
-
     # --------------------------------------------------------------------
     # OnAddMother
     # --------------------------------------------------------------------
@@ -629,6 +733,7 @@ class Application( Frame ):
         self.idSelectedMother = None
         d = DialogSelectSubject( self.master, self.ftGraph, 'Select a mother',
                                  self.OnSelectedMother, self.OnSelectedMotherCancel,
+                                 [ '***  New Individual ***' ],
                                  'F', [ self.idIndividual ] )
 
         # Create a new mother?
@@ -668,7 +773,6 @@ class Application( Frame ):
 
         else:
             sender = val.widget
-
             idx = sender.curselection()
 
             self.idSelectedMother = sender.get(idx)
@@ -722,11 +826,13 @@ class Application( Frame ):
       
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
+                                     [ '***  New Individual ***' ],
                                      'F', idsExcluded )
         elif ( sex == 'F' ):
       
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
+                                     [ '***  New Individual ***' ],
                                      'M', idsExcluded )
         else:
 
@@ -775,7 +881,6 @@ class Application( Frame ):
 
         else:
             sender = val.widget
-
             idx = sender.curselection()
 
             self.idSelectedSpouse = sender.get(idx)
@@ -825,6 +930,133 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
+    # OnAddChild
+    # --------------------------------------------------------------------
+
+    def OnAddChild(self):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        sex = theIndividual.findtext('SEX')
+
+        if ( ( not ( sex == 'M' ) ) and ( not ( sex == 'F' ) ) ):
+            
+            tkMessageBox.showwarning( 'Warning', 
+                                      'Please set the gender of this subject before adding a child.' )
+            return
+
+        children, idFamily = self.ftGraph.GetChildren( theIndividual )
+        idsChildren = []
+        for child in children:
+            idsChildren.append( child.attrib['id'] )
+
+       
+        self.idSelectedChild = None
+        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a child',
+                                 self.OnSelectedChild, self.OnSelectedChildCancel,
+                                 [ '***  New Individual ***' ],
+                                 None, [ self.idIndividual ] + idsChildren )
+
+        # Create a new child?
+        
+        if ( self.idSelectedChild is None ):
+
+            return
+
+        elif ( self.idSelectedChild == '***  New Individual ***' ):
+
+            self.idSelectedChild = self.GetNewIndividual()
+            
+        else:
+
+            value = self.idSelectedChild.split( ', ' )   
+            self.idSelectedChild = value[2]
+
+        # Set the child
+            
+        self.ftGraph.SetChild( self.idIndividual, self.idSelectedChild ) 
+        self.UpdateSelectedSubject()
+
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedChild
+    # --------------------------------------------------------------------
+
+    def OnSelectedChild(self, val):
+
+        # If val is None then this means there were non individuals to
+        # choose from so a new one should be created
+
+        if ( val is None ):
+            self.idSelectedChild = '***  New Individual ***'
+
+        else:
+            sender = val.widget
+            idx = sender.curselection()
+
+            self.idSelectedChild = sender.get(idx)
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedChildCancel
+    # --------------------------------------------------------------------
+
+    def OnSelectedChildCancel(self):
+
+        self.idSelectedChild = None
+        
+
+    # --------------------------------------------------------------------
+    # OnRemoveChild
+    # --------------------------------------------------------------------
+
+    def OnRemoveChild(self):
+
+        self.idSelectedChild = None
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        children, idFamily = self.ftGraph.GetChildren( theIndividual )
+
+        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a child to remove',
+                                 self.OnSelectedRemoveChild, self.OnSelectedRemoveChildCancel,
+                                 None, None, None, children )
+
+        if ( not self.idSelectedChild is None ):
+            self.ftGraph.RemoveChild( self.idIndividual, self.idSelectedChild )
+            
+
+        self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnSelectedRemoveChild
+    # --------------------------------------------------------------------
+
+    def OnSelectedRemoveChild(self, val):
+
+        print 'OnSelectedRemoveChild()'
+
+        if ( not val is None ):
+
+            sender = val.widget
+            idx = sender.curselection()
+            selected = sender.get(idx)
+            value = selected.split( ', ' )   
+
+            self.idSelectedChild = value[2]
+
+            print self.idSelectedChild
+
+    # --------------------------------------------------------------------
+    # OnSelectedRemoveChildCancel
+    # --------------------------------------------------------------------
+
+    def OnSelectedRemoveChildCancel(self):
+
+        self.idSelectedChild = None
+        
+
+    # --------------------------------------------------------------------
     # InitialiseSelectedSubject
     # --------------------------------------------------------------------
 
@@ -863,6 +1095,8 @@ class Application( Frame ):
         self.UpdateFatherButtonAdd()        
         self.UpdateMotherButtonAdd()        
         self.UpdateSpouseButtonAdd()        
+
+        self.UpdateChildrenListboxItems()
 
 
     # --------------------------------------------------------------------
@@ -971,6 +1205,36 @@ class Application( Frame ):
             imFamilyTree = PhotoImage( file='FamilyTree.gif' )
 
                 
+    # --------------------------------------------------------------------
+    # UpdateChildrenListboxItems
+    # --------------------------------------------------------------------
+
+    def UpdateChildrenListboxItems(self):
+
+        self.ChildrenListbox.delete( 0, END )
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        labels = []
+        theLabel  = None
+
+        children, idFamily = self.ftGraph.GetChildren( theIndividual )
+        
+        for child in children:
+
+            idChild = child.attrib['id']
+            forename = child.findtext('NAME/forename') or ''
+            surname  = child.findtext('NAME/surname') or ''
+
+            label = ', '.join( [ surname, forename, idChild,  ] )
+            labels.append( label )
+
+        labels = sorted( labels )
+
+        for label in labels:
+            self.ChildrenListbox.insert( END, label )
+
+
     # --------------------------------------------------------------------
     # OnFirstNameEdited
     # --------------------------------------------------------------------
