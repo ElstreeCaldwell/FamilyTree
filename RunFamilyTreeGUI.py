@@ -410,10 +410,10 @@ class Application( Frame ):
         self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)        
         self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.buttonFather = Button(self)
-        self.buttonFather.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonAddFather = Button(self)
+        self.buttonAddFather.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
 
-        self.UpdateFatherButton()
+        self.UpdateFatherButtonAdd()
 
         iRow = iRow + 1
 
@@ -421,10 +421,10 @@ class Application( Frame ):
         self.labelMother = Label(self, text='Mother:', anchor=W, justify=LEFT)        
         self.labelMother.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.buttonMother = Button(self)
-        self.buttonMother.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonAddMother = Button(self)
+        self.buttonAddMother.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
 
-        self.UpdateMotherButton()
+        self.UpdateMotherButtonAdd()
 
         iRow = iRow + 1
 
@@ -432,12 +432,30 @@ class Application( Frame ):
         self.labelSpouse = Label(self, text='Spouse:', anchor=W, justify=LEFT)        
         self.labelSpouse.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.buttonSpouse = Button(self)
-        self.buttonSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonAddSpouse = Button(self)
+        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
 
-        self.UpdateSpouseButton()
+        self.UpdateSpouseButtonAdd()
 
 
+
+        iRow = iRow + 4
+
+        # Remove Parents
+        self.buttonRemoveParents = Button(self)
+        self.buttonRemoveParents['text'] = 'Remove Parents'
+        self.buttonRemoveParents['command'] =  self.OnRemoveParents
+
+        self.buttonRemoveParents.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
+        # Remove Spouse
+        self.buttonRemoveSpouse = Button(self)
+        self.buttonRemoveSpouse['text'] = 'Remove Spouse'
+        self.buttonRemoveSpouse['command'] =  self.OnRemoveSpouse
+
+        self.buttonRemoveSpouse.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
 
 
 
@@ -685,7 +703,16 @@ class Application( Frame ):
 
     def OnAddSpouse(self):
 
+        idsExcluded = [ self.idIndividual ]
+
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
+
+        if ( not father is None ):
+            idsExcluded.append( self.ftGraph.GetIndividualID( father ) )
+
+        if ( not mother is None ):
+            idsExcluded.append( self.ftGraph.GetIndividualID( mother ) )
 
         sex = theIndividual.findtext('SEX')
 
@@ -695,12 +722,12 @@ class Application( Frame ):
       
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
-                                     'F', [ self.idIndividual ] )
+                                     'F', idsExcluded )
         elif ( sex == 'F' ):
       
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
-                                     'M', [ self.idIndividual ] )
+                                     'M', idsExcluded )
         else:
 
             tkMessageBox.showwarning( 'Warning', 
@@ -778,6 +805,26 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
+    # OnRemoveFather
+    # --------------------------------------------------------------------
+
+    def OnRemoveParents(self):
+
+        self.ftGraph.RemoveParents( self.idIndividual )
+        self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
+    # OnRemoveSpouse
+    # --------------------------------------------------------------------
+
+    def OnRemoveSpouse(self):
+      
+        self.ftGraph.RemoveSpouse( self.idIndividual )
+        self.UpdateSelectedSubject()
+
+
+    # --------------------------------------------------------------------
     # InitialiseSelectedSubject
     # --------------------------------------------------------------------
 
@@ -813,69 +860,69 @@ class Application( Frame ):
 
         self.InitialiseSelectedSubject()
 
-        self.UpdateFatherButton()        
-        self.UpdateMotherButton()        
-        self.UpdateSpouseButton()        
+        self.UpdateFatherButtonAdd()        
+        self.UpdateMotherButtonAdd()        
+        self.UpdateSpouseButtonAdd()        
 
 
     # --------------------------------------------------------------------
-    # UpdateFatherButton
+    # UpdateFatherButtonAdd
     # --------------------------------------------------------------------
 
-    def UpdateFatherButton(self):
+    def UpdateFatherButtonAdd(self):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
 
         if ( father is None ):
 
-            self.buttonFather['text'] = 'Add Father'
-            self.buttonFather['command'] = self.OnAddFather
+            self.buttonAddFather['text'] = 'Add Father'
+            self.buttonAddFather['command'] = self.OnAddFather
 
         else:
 
-            self.buttonFather['text'] = self.ftGraph.GetName( father )
-            self.buttonFather['command'] = self.OnGoToFather
+            self.buttonAddFather['text'] = self.ftGraph.GetName( father )
+            self.buttonAddFather['command'] = self.OnGoToFather
 
 
     # --------------------------------------------------------------------
-    # UpdateMotherButton
+    # UpdateMotherButtonAdd
     # --------------------------------------------------------------------
 
-    def UpdateMotherButton(self):
+    def UpdateMotherButtonAdd(self):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
 
         if ( mother is None ):
 
-            self.buttonMother['text'] = 'Add Mother'
-            self.buttonMother['command'] = self.OnAddMother
+            self.buttonAddMother['text'] = 'Add Mother'
+            self.buttonAddMother['command'] = self.OnAddMother
 
         else:
 
-            self.buttonMother['text'] = self.ftGraph.GetName( mother )
-            self.buttonMother['command'] = self.OnGoToMother
+            self.buttonAddMother['text'] = self.ftGraph.GetName( mother )
+            self.buttonAddMother['command'] = self.OnGoToMother
 
 
     # --------------------------------------------------------------------
-    # UpdateSpouseButton
+    # UpdateSpouseButtonAdd
     # --------------------------------------------------------------------
 
-    def UpdateSpouseButton(self):
+    def UpdateSpouseButtonAdd(self):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         spouse, idFamilySpouse, dateMarriage = self.ftGraph.GetSpouse( theIndividual )
 
         if ( spouse is None ):
 
-            self.buttonSpouse['text'] = 'Add Spouse'
-            self.buttonSpouse['command'] = self.OnAddSpouse
+            self.buttonAddSpouse['text'] = 'Add Spouse'
+            self.buttonAddSpouse['command'] = self.OnAddSpouse
 
         else:
 
-            self.buttonSpouse['text'] = self.ftGraph.GetName( spouse )
-            self.buttonSpouse['command'] = self.OnGoToSpouse
+            self.buttonAddSpouse['text'] = self.ftGraph.GetName( spouse )
+            self.buttonAddSpouse['command'] = self.OnGoToSpouse
 
 
     # --------------------------------------------------------------------
