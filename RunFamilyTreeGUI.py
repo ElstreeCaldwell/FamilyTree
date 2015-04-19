@@ -241,6 +241,10 @@ class Application( Frame ):
         self.varSelectedDeathMonth = StringVar()
         self.varSelectedDeathYear  = StringVar()
 
+        self.varSelectedMarriedDay   = StringVar()
+        self.varSelectedMarriedMonth = StringVar()
+        self.varSelectedMarriedYear  = StringVar()
+
         self.varSelectedSpouse = StringVar()
 
         self.InitialiseSelectedSubject()
@@ -422,7 +426,7 @@ class Application( Frame ):
 
         # Parents
         self.labelID = Label(self, text='Parents')        
-        self.labelID.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S)
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
 
         iRow = iRow + 1
 
@@ -431,7 +435,7 @@ class Application( Frame ):
         self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.buttonAddFather = Button(self)
-        self.buttonAddFather.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonAddFather.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
 
         self.UpdateFatherButtonAdd()
 
@@ -442,7 +446,7 @@ class Application( Frame ):
         self.labelMother.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.buttonAddMother = Button(self)
-        self.buttonAddMother.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonAddMother.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
 
         self.UpdateMotherButtonAdd()
 
@@ -453,21 +457,47 @@ class Application( Frame ):
         self.buttonRemoveParents['text'] = 'Remove Parents'
         self.buttonRemoveParents['command'] =  self.OnRemoveParents
 
-        self.buttonRemoveParents.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonRemoveParents.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
 
 
         iRow = iRow + 2
 
         # Spouse
         self.labelID = Label(self, text='Spouse')        
-        self.labelID.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S)
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
+
+        iRow = iRow + 1
+        
+        # Add Spouse
+        self.buttonAddSpouse = Button(self)
+        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
+
+        self.UpdateSpouseButtonAdd()
 
         iRow = iRow + 1
 
-        self.buttonAddSpouse = Button(self)
-        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        # Married Date
+        self.labelMarried = Label(self, text='Married:', anchor=W, justify=LEFT)        
+        self.labelMarried.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.UpdateSpouseButtonAdd()
+        self.optionSelectedMarriedDay = OptionMenu( self, self.varSelectedMarriedDay, *days )
+        self.optionSelectedMarriedDay.bind( '<<ListboxSelect>>', self.OnMarriedDayOptionSelect ) 
+ 
+        self.optionSelectedMarriedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedMarriedDay.trace( "w", self.OnMarriedDayOptionSelect )
+
+        self.optionSelectedMarriedMonth = OptionMenu( self, self.varSelectedMarriedMonth, *months )
+        self.optionSelectedMarriedMonth.bind( '<<ListboxSelect>>', self.OnMarriedMonthOptionSelect ) 
+ 
+        self.optionSelectedMarriedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedMarriedMonth.trace( "w", self.OnMarriedMonthOptionSelect )
+
+        self.entrySelectedMarriedYear = \
+            Entry(self, textvariable=self.varSelectedMarriedYear, width=4)
+
+        self.entrySelectedMarriedYear.grid( row=iRow, rowspan=1, 
+                                          column=iCol+3, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedMarriedYear.trace( "w", self.OnMarriedYearEdited )
 
         iRow = iRow + 1
 
@@ -476,14 +506,14 @@ class Application( Frame ):
         self.buttonRemoveSpouse['text'] = 'Remove Spouse'
         self.buttonRemoveSpouse['command'] =  self.OnRemoveSpouse
 
-        self.buttonRemoveSpouse.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
+        self.buttonRemoveSpouse.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
 
         iRow = iRow + 1
 
 
 
         iRow = 1
-        iCol = iCol + 2
+        iCol = iCol + 4
 
         # Children
         self.CreateChildrenListbox( iCol, iRow )
@@ -1081,6 +1111,22 @@ class Application( Frame ):
         self.varSelectedDeathMonth.set( theIndividual.findtext('DEATH/DATE/month') or '' )
         self.varSelectedDeathYear.set(  theIndividual.findtext('DEATH/DATE/year') or '' )
 
+        marriageDate = self.ftGraph.GetDateMarried( theIndividual )
+
+        if ( ( not marriageDate is None ) and ( len( marriageDate ) > 0 ) ):
+
+            marriageDate = marriageDate.split()
+
+            self.varSelectedMarriedDay.set(   marriageDate[0] )
+            self.varSelectedMarriedMonth.set( marriageDate[1] )
+            self.varSelectedMarriedYear.set(  marriageDate[2] )
+
+        else:
+            
+            self.varSelectedMarriedDay.set( '' )
+            self.varSelectedMarriedMonth.set( '' )
+            self.varSelectedMarriedYear.set( '' )
+
         self.varSelectedSpouse.set( theIndividual.findtext( 'FAMILY_SPOUSE' ) )
 
 
@@ -1316,6 +1362,33 @@ class Application( Frame ):
     def OnDeathYearEdited(self, *args):
 
         self.ftGraph.SetDeathYear( self.idIndividual, self.varSelectedDeathYear.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnMarriedDayOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnMarriedDayOptionSelect(self, *args):
+
+        self.ftGraph.SetMarriedDay( self.idIndividual, self.varSelectedMarriedDay.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnMarriedMonthOptionSelect
+    # --------------------------------------------------------------------
+
+    def OnMarriedMonthOptionSelect(self, *args):
+
+        self.ftGraph.SetMarriedMonth( self.idIndividual, self.varSelectedMarriedMonth.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnMarriedYearEdited
+    # --------------------------------------------------------------------
+
+    def OnMarriedYearEdited(self, *args):
+
+        self.ftGraph.SetMarriedYear( self.idIndividual, self.varSelectedMarriedYear.get() )
 
 
     # --------------------------------------------------------------------

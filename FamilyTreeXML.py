@@ -369,8 +369,6 @@ class FamilyTreeXML( object ):
             i = i + 1
             idFamily = 'F{:03d}'.format ( i )
 
-        print 'idFamily', idFamily
-
         return ET.SubElement( self.ftXML, 'FAMILY', { 'id': idFamily } )
     # ----------------------------------------------------------------------
     
@@ -662,6 +660,190 @@ class FamilyTreeXML( object ):
                 eDeathYear = ET.SubElement(eDeathDate, 'year' )
 
             eDeathYear.text = year
+    
+            
+    # ----------------------------------------------------------------------
+    def SetMarriedDay( self, idIndividual, day ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+
+        if ( not theIndividual is None ):
+
+            sex = theIndividual.findtext('SEX')
+
+            idFamily = theIndividual.findtext('FAMILY_SPOUSE')
+            print 'SetMarriedDay() idFamily', idFamily
+
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+
+                eFamilySpouse = theIndividual.find( 'FAMILY_SPOUSE' )
+            
+                if ( eFamilySpouse is None ):
+                    eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+
+                    eFamilySpouse.text = idFamily
+
+            for family in self.GetFamilyWithID( idFamily ):
+
+                eSpouse = None
+    
+                if ( sex == 'F' ):
+
+                    eSpouse = family.find('WIFE')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'WIFE' )
+
+                elif ( sex == 'M' ):
+                    eSpouse = family.find('HUSBAND')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'HUSBAND' )
+
+                if ( not eSpouse is None ):
+                    eSpouse.text = idIndividual
+                
+                eMarried = family.find('MARRIAGE')
+
+                if ( eMarried is None ):
+                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+
+                eMarriedDate = eMarried.find('DATE')
+
+                if ( eMarriedDate is None ):
+                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
+
+                eMarriedDay  = eMarriedDate.find('day')
+                
+                if ( eMarriedDay is None ):
+                    eMarriedDay = ET.SubElement(eMarriedDate, 'day' )
+
+                eMarriedDay.text = day
+    
+            
+    # ----------------------------------------------------------------------
+    def SetMarriedMonth( self, idIndividual, month ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+
+        if ( not theIndividual is None ):
+
+            sex = theIndividual.findtext('SEX')
+
+            idFamily = theIndividual.findtext('FAMILY_SPOUSE')
+
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+                
+                eFamilySpouse = theIndividual.find( 'FAMILY_SPOUSE' )
+            
+                if ( eFamilySpouse is None ):
+                    eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+
+                eFamilySpouse.text = idFamily
+                
+            for family in self.GetFamilyWithID( idFamily ):
+
+                eSpouse = None
+    
+                if ( sex == 'F' ):
+
+                    eSpouse = family.find('WIFE')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'WIFE' )
+
+                elif ( sex == 'M' ):
+                    eSpouse = family.find('HUSBAND')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'HUSBAND' )
+
+                if ( not eSpouse is None ):
+                    eSpouse.text = idIndividual
+                    
+                eMarried = family.find('MARRIAGE')
+
+                if ( eMarried is None ):
+                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+
+                eMarriedDate = eMarried.find('DATE')
+
+                if ( eMarriedDate is None ):
+                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
+
+                eMarriedMonth  = eMarriedDate.find('month')
+                
+                if ( eMarriedMonth is None ):
+                    eMarriedMonth = ET.SubElement(eMarriedDate, 'month' )
+
+                eMarriedMonth.text = month
+    
+            
+    # ----------------------------------------------------------------------
+    def SetMarriedYear( self, idIndividual, year ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+
+        if ( not theIndividual is None ):
+            
+            sex = theIndividual.findtext('SEX')
+
+            idFamily = theIndividual.findtext('FAMILY_SPOUSE')
+
+            if ( idFamily is None ):
+
+                family = self.CreateFamily()
+                idFamily = family.attrib['id']
+                
+                eFamilySpouse = theIndividual.find( 'FAMILY_SPOUSE' )
+            
+                if ( eFamilySpouse is None ):
+                    eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+
+                eFamilySpouse.text = idFamily
+                
+            for family in self.GetFamilyWithID( idFamily ):    
+
+                eSpouse = None
+    
+                if ( sex == 'F' ):
+
+                    eSpouse = family.find('WIFE')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'WIFE' )
+
+                elif ( sex == 'M' ):
+                    eSpouse = family.find('HUSBAND')
+
+                    if ( eSpouse is None ):
+                        eSpouse = ET.SubElement( family, 'HUSBAND' )
+
+                if ( not eSpouse is None ):
+                    eSpouse.text = idIndividual
+                    
+                eMarried = family.find('MARRIAGE')
+
+                if ( eMarried is None ):
+                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+
+                eMarriedDate = eMarried.find('DATE')
+
+                if ( eMarriedDate is None ):
+                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
+
+                eMarriedYear  = eMarriedDate.find('year')
+                
+                if ( eMarriedYear is None ):
+                    eMarriedYear = ET.SubElement(eMarriedDate, 'year' )
+
+                eMarriedYear.text = year
     
             
     # ----------------------------------------------------------------------
