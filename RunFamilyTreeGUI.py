@@ -18,7 +18,7 @@ import xml.etree.ElementTree as ET
 
 from Tkinter import *
 import ttk
-from ImageTk import PhotoImage
+# from ImageTk import PhotoImage
 
 import FamilyTreeGraph as FTG
 
@@ -58,10 +58,10 @@ class DialogSelectSubject:
         #self.top.geometry( '{}x{}'.format( 300, 900 ) )
 
         self.top.columnconfigure(0, weight=1)
-        self.top.rowconfigure(0, weight=1)	
+        self.top.rowconfigure(0, weight=1)
 
         self.CreateSubjectListbox()
-         
+
         okButton = Button( self.top, text="OK", command=self.OnOK )
         okButton.pack()
 
@@ -80,7 +80,7 @@ class DialogSelectSubject:
         row = 1
         nRows = 20
 
-        self.labelSubject = Label( self.top, text=self.instruction )        
+        self.labelSubject = Label( self.top, text=self.instruction )
         self.labelSubject.pack()
 
         self.SubjectScrollbarY = Scrollbar(self.top, orient=VERTICAL)
@@ -98,8 +98,8 @@ class DialogSelectSubject:
         self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
         self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
 
-        self.SubjectListbox.bind( '<<ListboxSelect>>', 
-                                  self.callback ) 
+        self.SubjectListbox.bind( '<<ListboxSelect>>',
+                                  self.callback )
 
 
     def GetLabels(self):
@@ -125,7 +125,7 @@ class DialogSelectSubject:
                 labels.append( label )
 
         return labels
-        
+
 
     def UpdateSubjectListboxItems(self):
 
@@ -138,7 +138,7 @@ class DialogSelectSubject:
 
         for label in labels:
             self.SubjectListbox.insert( END, label )
-        
+
 
     def OnOK( self ):
 
@@ -164,22 +164,22 @@ class Application( Frame ):
     #  __init__
     # --------------------------------------------------------------------
 
-    def __init__( self, master, ftXML, fileOutXML ):
+    def __init__( self, master, fileInXML, fileOutXML ):
 
         """Initialise the application class"""
 
         self.master = master
         Frame.__init__(self, self.master)
 
-        self.ftXML = ftXML
-        self.ftGraph = FTG.FamilyTreeGraph( ftXML )
-        
+        self.fileInXML = fileInXML
         self.fileOutXML = fileOutXML
+
+        self.ReadXML()
 
         self.grid()
 
         self.master.columnconfigure(0, weight=1)
-        self.master.rowconfigure(0, weight=1)	
+        self.master.rowconfigure(0, weight=1)
 
         self.InitialiseMemberParameters()
 
@@ -189,6 +189,23 @@ class Application( Frame ):
         self.UpdateSubjectListboxItems( True )
 
         master.bind("<Key>", self.OnKeypress)
+
+
+    # --------------------------------------------------------------------
+    #  ReadXML()
+    # --------------------------------------------------------------------
+
+    def ReadXML(self):
+
+        if ( self.fileInXML is not None ):
+
+            self.ftXML = ET.parse( self.fileInXML ).getroot()
+
+        else:
+
+            self.ftXML = ET.Element( 'FamilyTree' )
+
+        self.ftGraph = FTG.FamilyTreeGraph( self.ftXML )
 
 
     # --------------------------------------------------------------------
@@ -203,8 +220,8 @@ class Application( Frame ):
             fout = open( self.fileOutXML, 'wb' )
             fout.write( ET.tostring( self.ftXML ) )
             fout.close()
-            
-        
+
+
     # --------------------------------------------------------------------
     # InitialiseMemberParameters
     # --------------------------------------------------------------------
@@ -216,7 +233,7 @@ class Application( Frame ):
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
         if ( theIndividual is None ):
-            
+
             theIndividual = self.ftGraph.CreateIndividual()
 
         self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
@@ -249,35 +266,38 @@ class Application( Frame ):
         self.varSelectedSpouse = StringVar()
 
         self.InitialiseSelectedSubject()
-        
+
 
     # --------------------------------------------------------------------
     # CreateMenuBar
     # --------------------------------------------------------------------
 
     def CreateMenuBar(self):
-      
+
         menubar = Menu( self.master )
 
         self.master.config( menu=menubar )
 
         # The File Menu
-        
-        fileMenu = Menu(menubar)       
-        
-        fileMenu.add_command( label="Save", underline=0, command=self.SaveTree )
-        
+
+        fileMenu = Menu(menubar)
+
+        fileMenu.add_command( label="Open", underline=0, command=self.OpenTreeXML )
+
+        fileMenu.add_command( label="Save", underline=0, command=self.SaveTreeXML )
+        fileMenu.add_command( label="SaveAs", underline=0, command=self.SaveAsTreeXML )
+
         fileMenu.add_separator()
-        
+
         fileMenu.add_command(label="Quit", underline=0, command=self.quit)
 
-        menubar.add_cascade(label="File", underline=0, menu=fileMenu)        
- 
+        menubar.add_cascade(label="File", underline=0, menu=fileMenu)
+
 
        # The Plot Menu
-        
-        plotMenu = Menu(menubar)       
-        
+
+        plotMenu = Menu(menubar)
+
         plotMenu.add_command( label="Plot Entire Tree",
                               underline=0, command=self.OnPlotEntireTree )
 
@@ -289,9 +309,9 @@ class Application( Frame ):
 
         plotMenu.add_command( label="Plot Tree of Subject's Descendents",
                               underline=0, command=self.OnPlotDescendents )
-        
-        menubar.add_cascade(label="Plot", underline=0, menu=plotMenu)        
- 
+
+        menubar.add_cascade(label="Plot", underline=0, menu=plotMenu)
+
 
     # --------------------------------------------------------------------
     # CreateWidgets
@@ -308,12 +328,12 @@ class Application( Frame ):
 
         iRow = 22
         iCol = 0
-        
+
         # New subject
         self.buttonNewSubject = Button(self)
         self.buttonNewSubject['text'] = 'New Subject'
         self.buttonNewSubject['command'] = self.OnNewSubject
-        
+
         self.buttonNewSubject.grid(row=iRow, column=0, columnspan=2, sticky=N+S+E+W)
 
 
@@ -321,13 +341,13 @@ class Application( Frame ):
         iCol = 4
 
         # Subject
-        self.labelID = Label(self, text='Subject')        
+        self.labelID = Label(self, text='Subject')
         self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
 
         iRow = iRow + 1
 
         # ID
-        self.labelID = Label(self, text='ID:', anchor=W, justify=LEFT)        
+        self.labelID = Label(self, text='ID:', anchor=W, justify=LEFT)
         self.labelID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedID = \
@@ -339,7 +359,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # FamilySpouse
-        self.labelFamilySpouseID = Label(self, text='Spouse Family:', anchor=W, justify=LEFT)        
+        self.labelFamilySpouseID = Label(self, text='Spouse Family:', anchor=W, justify=LEFT)
         self.labelFamilySpouseID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedFamilySpouseID = \
@@ -351,7 +371,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
        # FamilyChild
-        self.labelFamilyChildID = Label(self, text='Child Family:', anchor=W, justify=LEFT)        
+        self.labelFamilyChildID = Label(self, text='Child Family:', anchor=W, justify=LEFT)
         self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedFamilyChildID = \
@@ -363,7 +383,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Last name
-        self.labelLastName = Label(self, text='Last Name:', anchor=W, justify=LEFT)        
+        self.labelLastName = Label(self, text='Last Name:', anchor=W, justify=LEFT)
         self.labelLastName.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.entrySelectedLastName = \
@@ -376,76 +396,76 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # First name
-        self.labelFirstName = Label(self, text='First Name:', anchor=W, justify=LEFT)        
+        self.labelFirstName = Label(self, text='First Name:', anchor=W, justify=LEFT)
         self.labelFirstName.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.entrySelectedFirstName = \
             Entry(self, textvariable=self.varSelectedFirstName)
 
-        self.entrySelectedFirstName.grid( row=iRow, rowspan=1, 
+        self.entrySelectedFirstName.grid( row=iRow, rowspan=1,
                                           column=iCol+1, columnspan=3, sticky=N+S+E+W )
         self.varSelectedFirstName.trace( "w", self.OnFirstNameEdited )
 
         iRow = iRow + 1
 
         # Sex
-        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)        
+        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)
         self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
                                              ' ', 'M', 'F' )
-        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect ) 
- 
+        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect )
+
         self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
 
         iRow = iRow + 1
 
         # Birth Date
-        self.labelBirth = Label(self, text='Birth:', anchor=W, justify=LEFT)        
+        self.labelBirth = Label(self, text='Birth:', anchor=W, justify=LEFT)
         self.labelBirth.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedBirthDay = OptionMenu( self, self.varSelectedBirthDay, *days )
-        self.optionSelectedBirthDay.bind( '<<ListboxSelect>>', self.OnBirthDayOptionSelect ) 
- 
+        self.optionSelectedBirthDay.bind( '<<ListboxSelect>>', self.OnBirthDayOptionSelect )
+
         self.optionSelectedBirthDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedBirthDay.trace( "w", self.OnBirthDayOptionSelect )
 
         self.optionSelectedBirthMonth = OptionMenu( self, self.varSelectedBirthMonth, *months )
-        self.optionSelectedBirthMonth.bind( '<<ListboxSelect>>', self.OnBirthMonthOptionSelect ) 
- 
+        self.optionSelectedBirthMonth.bind( '<<ListboxSelect>>', self.OnBirthMonthOptionSelect )
+
         self.optionSelectedBirthMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
         self.varSelectedBirthMonth.trace( "w", self.OnBirthMonthOptionSelect )
 
         self.entrySelectedBirthYear = \
             Entry(self, textvariable=self.varSelectedBirthYear, width=4)
 
-        self.entrySelectedBirthYear.grid( row=iRow, rowspan=1, 
+        self.entrySelectedBirthYear.grid( row=iRow, rowspan=1,
                                           column=iCol+3, columnspan=1, sticky=N+S+E+W )
         self.varSelectedBirthYear.trace( "w", self.OnBirthYearEdited )
 
         iRow = iRow + 1
 
         # Death Date
-        self.labelDeath = Label(self, text='Death:', anchor=W, justify=LEFT)        
+        self.labelDeath = Label(self, text='Death:', anchor=W, justify=LEFT)
         self.labelDeath.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedDeathDay = OptionMenu( self, self.varSelectedDeathDay, *days )
-        self.optionSelectedDeathDay.bind( '<<ListboxSelect>>', self.OnDeathDayOptionSelect ) 
- 
+        self.optionSelectedDeathDay.bind( '<<ListboxSelect>>', self.OnDeathDayOptionSelect )
+
         self.optionSelectedDeathDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDeathDay.trace( "w", self.OnDeathDayOptionSelect )
 
         self.optionSelectedDeathMonth = OptionMenu( self, self.varSelectedDeathMonth, *months )
-        self.optionSelectedDeathMonth.bind( '<<ListboxSelect>>', self.OnDeathMonthOptionSelect ) 
- 
+        self.optionSelectedDeathMonth.bind( '<<ListboxSelect>>', self.OnDeathMonthOptionSelect )
+
         self.optionSelectedDeathMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDeathMonth.trace( "w", self.OnDeathMonthOptionSelect )
 
         self.entrySelectedDeathYear = \
             Entry(self, textvariable=self.varSelectedDeathYear, width=4)
 
-        self.entrySelectedDeathYear.grid( row=iRow, rowspan=1, 
+        self.entrySelectedDeathYear.grid( row=iRow, rowspan=1,
                                           column=iCol+3, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDeathYear.trace( "w", self.OnDeathYearEdited )
 
@@ -453,12 +473,12 @@ class Application( Frame ):
 
 
         iRow = 22
-        
+
         # Delete subject
         self.buttonDeleteSubject = Button(self)
         self.buttonDeleteSubject['text'] = 'Delete Subject'
         self.buttonDeleteSubject['command'] = self.OnDeleteSubject
-        
+
         self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
 
 
@@ -467,13 +487,13 @@ class Application( Frame ):
         iCol = iCol + 4
 
         # Parents
-        self.labelID = Label(self, text='Parents')        
+        self.labelID = Label(self, text='Parents')
         self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
 
         iRow = iRow + 1
 
         # Father
-        self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)        
+        self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)
         self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.buttonAddFather = Button(self)
@@ -484,7 +504,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Mother
-        self.labelMother = Label(self, text='Mother:', anchor=W, justify=LEFT)        
+        self.labelMother = Label(self, text='Mother:', anchor=W, justify=LEFT)
         self.labelMother.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.buttonAddMother = Button(self)
@@ -505,11 +525,11 @@ class Application( Frame ):
         iRow = iRow + 2
 
         # Spouse
-        self.labelID = Label(self, text='Spouse')        
+        self.labelID = Label(self, text='Spouse')
         self.labelID.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S)
 
         iRow = iRow + 1
-        
+
         # Add Spouse
         self.buttonAddSpouse = Button(self)
         self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W)
@@ -519,25 +539,25 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Married Date
-        self.labelMarried = Label(self, text='Married:', anchor=W, justify=LEFT)        
+        self.labelMarried = Label(self, text='Married:', anchor=W, justify=LEFT)
         self.labelMarried.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedMarriedDay = OptionMenu( self, self.varSelectedMarriedDay, *days )
-        self.optionSelectedMarriedDay.bind( '<<ListboxSelect>>', self.OnMarriedDayOptionSelect ) 
- 
+        self.optionSelectedMarriedDay.bind( '<<ListboxSelect>>', self.OnMarriedDayOptionSelect )
+
         self.optionSelectedMarriedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedMarriedDay.trace( "w", self.OnMarriedDayOptionSelect )
 
         self.optionSelectedMarriedMonth = OptionMenu( self, self.varSelectedMarriedMonth, *months )
-        self.optionSelectedMarriedMonth.bind( '<<ListboxSelect>>', self.OnMarriedMonthOptionSelect ) 
- 
+        self.optionSelectedMarriedMonth.bind( '<<ListboxSelect>>', self.OnMarriedMonthOptionSelect )
+
         self.optionSelectedMarriedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
         self.varSelectedMarriedMonth.trace( "w", self.OnMarriedMonthOptionSelect )
 
         self.entrySelectedMarriedYear = \
             Entry(self, textvariable=self.varSelectedMarriedYear, width=4)
 
-        self.entrySelectedMarriedYear.grid( row=iRow, rowspan=1, 
+        self.entrySelectedMarriedYear.grid( row=iRow, rowspan=1,
                                           column=iCol+3, columnspan=1, sticky=N+S+E+W )
         self.varSelectedMarriedYear.trace( "w", self.OnMarriedYearEdited )
 
@@ -566,7 +586,7 @@ class Application( Frame ):
         self.buttonAddChild = Button(self)
         self.buttonAddChild['text'] = 'Add Child'
         self.buttonAddChild['command'] = self.OnAddChild
-        
+
         self.buttonAddChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
 
         iRow = iRow + 1
@@ -575,7 +595,7 @@ class Application( Frame ):
         self.buttonRemoveChild = Button(self)
         self.buttonRemoveChild['text'] = 'Remove Child'
         self.buttonRemoveChild['command'] = self.OnRemoveChild
-        
+
         self.buttonRemoveChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
 
 
@@ -583,9 +603,9 @@ class Application( Frame ):
             self.columnconfigure(column, weight=1)
 
         for row in range( 30 ):
-            self.rowconfigure(row, weight=1)	
+            self.rowconfigure(row, weight=1)
 
-    
+
     # --------------------------------------------------------------------
     # CreateSubjectListbox
     # --------------------------------------------------------------------
@@ -595,19 +615,19 @@ class Application( Frame ):
         nColumns = 2
         nRows = 20
 
-        self.labelSubject = Label(self, text='Subjects')        
-        self.labelSubject.grid(row=row, column=column, 
+        self.labelSubject = Label(self, text='Subjects')
+        self.labelSubject.grid(row=row, column=column,
                                columnspan=nColumns, sticky=N+S)
 
         self.SubjectScrollbarY = Scrollbar(self, orient=VERTICAL)
         self.SubjectScrollbarY.grid(row=row+1, column=column+nColumns,
-                                    rowspan=nRows, 
+                                    rowspan=nRows,
                                     sticky=N+S)
         self.SubjectScrollbarY.rowconfigure(row+1, weight=1)
-        
+
         self.SubjectScrollbarX = Scrollbar(self, orient=HORIZONTAL)
         self.SubjectScrollbarX.grid(row=row+nRows+1, column=column,
-                                    columnspan=nColumns, 
+                                    columnspan=nColumns,
                                     sticky=E+W)
 
         self.SubjectListbox = \
@@ -618,7 +638,7 @@ class Application( Frame ):
 
         self.UpdateSubjectListboxItems( False )
 
-        self.SubjectListbox.grid(row=row+1, rowspan=nRows, 
+        self.SubjectListbox.grid(row=row+1, rowspan=nRows,
                                  column=column, columnspan=nColumns,
                                  sticky=N+S+E+W)
         self.SubjectListbox.columnconfigure(column, weight=1)
@@ -627,10 +647,10 @@ class Application( Frame ):
         self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
         self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
 
-        self.SubjectListbox.bind( '<<ListboxSelect>>', 
-                                 self.OnSubjectListboxSelect ) 
- 
- 
+        self.SubjectListbox.bind( '<<ListboxSelect>>',
+                                 self.OnSubjectListboxSelect )
+
+
     # --------------------------------------------------------------------
     # CreateChildrenListbox
     # --------------------------------------------------------------------
@@ -640,19 +660,19 @@ class Application( Frame ):
         nColumns = 2
         nRows = 18
 
-        self.labelChildren = Label(self, text='Children')        
-        self.labelChildren.grid(row=row, column=column, 
+        self.labelChildren = Label(self, text='Children')
+        self.labelChildren.grid(row=row, column=column,
                                columnspan=nColumns, sticky=N+S)
 
         self.ChildrenScrollbarY = Scrollbar(self, orient=VERTICAL)
         self.ChildrenScrollbarY.grid(row=row+1, column=column+nColumns,
-                                    rowspan=nRows, 
+                                    rowspan=nRows,
                                     sticky=N+S)
         self.ChildrenScrollbarY.rowconfigure(row+1, weight=1)
-        
+
         self.ChildrenScrollbarX = Scrollbar(self, orient=HORIZONTAL)
         self.ChildrenScrollbarX.grid(row=row+nRows+1, column=column,
-                                    columnspan=nColumns, 
+                                    columnspan=nColumns,
                                     sticky=E+W)
 
         self.ChildrenListbox = \
@@ -663,7 +683,7 @@ class Application( Frame ):
 
         self.UpdateChildrenListboxItems()
 
-        self.ChildrenListbox.grid(row=row+1, rowspan=nRows, 
+        self.ChildrenListbox.grid(row=row+1, rowspan=nRows,
                                  column=column, columnspan=nColumns,
                                  sticky=N+S+E+W)
         self.ChildrenListbox.columnconfigure(column, weight=1)
@@ -672,23 +692,23 @@ class Application( Frame ):
         self.ChildrenScrollbarX['command'] = self.ChildrenListbox.xview
         self.ChildrenScrollbarY['command'] = self.ChildrenListbox.yview
 
-        self.ChildrenListbox.bind( '<<ListboxSelect>>', 
-                                 self.OnChildrenListboxSelect ) 
- 
- 
+        self.ChildrenListbox.bind( '<<ListboxSelect>>',
+                                 self.OnChildrenListboxSelect )
+
+
     # --------------------------------------------------------------------
     # OnSubjectListboxSelect
     # --------------------------------------------------------------------
 
     def OnSubjectListboxSelect(self, val):
-      
+
         sender = val.widget
 
         idx = sender.curselection()
-        value = sender.get(idx).split( ', ' )   
+        value = sender.get(idx).split( ', ' )
 
         self.idIndividual = value[2]
-        
+
         self.UpdateSelectedSubject()
 
 
@@ -697,14 +717,14 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnChildrenListboxSelect(self, val):
-      
+
         sender = val.widget
 
         idx = sender.curselection()
-        value = sender.get(idx).split( ', ' )   
+        value = sender.get(idx).split( ', ' )
 
         self.idIndividual = value[2]
-        
+
         self.UpdateSelectedSubject()
 
 
@@ -713,7 +733,7 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnAddFather(self):
-      
+
         self.idSelectedFather = None
         d = DialogSelectSubject( self.master, self.ftGraph, 'Select a father',
                                  self.OnSelectedFather, self.OnSelectedFatherCancel,
@@ -721,7 +741,7 @@ class Application( Frame ):
                                  'M', [ self.idIndividual ] )
 
         # Create a new father?
-        
+
         if ( self.idSelectedFather is None ):
 
             return
@@ -729,16 +749,16 @@ class Application( Frame ):
         elif ( self.idSelectedFather == '***  New Individual ***' ):
 
             self.idSelectedFather = self.GetNewIndividual()
-            
+
         else:
 
-            value = self.idSelectedFather.split( ', ' )   
+            value = self.idSelectedFather.split( ', ' )
             self.idSelectedFather = value[2]
 
         # Set the father
-            
+
         self.ftGraph.SetSex( self.idSelectedFather, 'M' )
-        self.ftGraph.SetFather( self.idIndividual, self.idSelectedFather ) 
+        self.ftGraph.SetFather( self.idIndividual, self.idSelectedFather )
         self.UpdateSelectedSubject()
 
 
@@ -769,7 +789,7 @@ class Application( Frame ):
     def OnSelectedFatherCancel(self):
 
         self.idSelectedFather = None
-        
+
 
     # --------------------------------------------------------------------
     # OnGoToFather
@@ -790,7 +810,7 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnAddMother(self):
-      
+
         self.idSelectedMother = None
         d = DialogSelectSubject( self.master, self.ftGraph, 'Select a mother',
                                  self.OnSelectedMother, self.OnSelectedMotherCancel,
@@ -798,7 +818,7 @@ class Application( Frame ):
                                  'F', [ self.idIndividual ] )
 
         # Create a new mother?
-        
+
         if ( self.idSelectedMother is None ):
 
             return
@@ -806,16 +826,16 @@ class Application( Frame ):
         elif ( self.idSelectedMother == '***  New Individual ***' ):
 
             self.idSelectedMother = self.GetNewIndividual()
-            
+
         else:
 
-            value = self.idSelectedMother.split( ', ' )   
+            value = self.idSelectedMother.split( ', ' )
             self.idSelectedMother = value[2]
 
         # Set the mother
-            
+
         self.ftGraph.SetSex( self.idSelectedMother, 'F' )
-        self.ftGraph.SetMother( self.idIndividual, self.idSelectedMother ) 
+        self.ftGraph.SetMother( self.idIndividual, self.idSelectedMother )
         self.UpdateSelectedSubject()
 
 
@@ -846,7 +866,7 @@ class Application( Frame ):
     def OnSelectedMotherCancel(self):
 
         self.idSelectedMother = None
-        
+
 
     # --------------------------------------------------------------------
     # OnGoToMother
@@ -884,25 +904,25 @@ class Application( Frame ):
         self.idSelectedSpouse = None
 
         if ( sex == 'M' ):
-      
+
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
                                      [ '***  New Individual ***' ],
                                      'F', idsExcluded )
         elif ( sex == 'F' ):
-      
+
             d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
                                      self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
                                      [ '***  New Individual ***' ],
                                      'M', idsExcluded )
         else:
 
-            tkMessageBox.showwarning( 'Warning', 
+            tkMessageBox.showwarning( 'Warning',
                                       'Please set the gender of this subject before adding a spouse.' )
             return
-            
+
         # Create a new spouse?
-        
+
         if ( self.idSelectedSpouse is None ):
 
             return
@@ -910,10 +930,10 @@ class Application( Frame ):
         elif ( self.idSelectedSpouse == '***  New Individual ***' ):
 
             self.idSelectedSpouse = self.GetNewIndividual()
-            
+
         else:
 
-            value = self.idSelectedSpouse.split( ', ' )   
+            value = self.idSelectedSpouse.split( ', ' )
             self.idSelectedSpouse = value[2]
 
         # Set the spouse
@@ -922,8 +942,8 @@ class Application( Frame ):
             self.ftGraph.SetSex( self.idSelectedSpouse, 'F' )
         elif ( sex == 'F' ):
             self.ftGraph.SetSex( self.idSelectedSpouse, 'M' )
-            
-        self.ftGraph.SetSpouse( self.idIndividual, self.idSelectedSpouse ) 
+
+        self.ftGraph.SetSpouse( self.idIndividual, self.idSelectedSpouse )
         self.UpdateSelectedSubject()
 
 
@@ -954,14 +974,14 @@ class Application( Frame ):
     def OnSelectedSpouseCancel(self):
 
         self.idSelectedSpouse = None
-        
+
 
     # --------------------------------------------------------------------
     # OnGoToSpouse
     # --------------------------------------------------------------------
 
     def OnGoToSpouse(self):
-      
+
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         spouse, idFamilySpouse, dateMarriage = self.ftGraph.GetSpouse( theIndividual )
 
@@ -985,7 +1005,7 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnRemoveSpouse(self):
-      
+
         self.ftGraph.RemoveSpouse( self.idIndividual )
         self.UpdateSelectedSubject()
 
@@ -1000,8 +1020,8 @@ class Application( Frame ):
         sex = theIndividual.findtext('SEX')
 
         if ( ( not ( sex == 'M' ) ) and ( not ( sex == 'F' ) ) ):
-            
-            tkMessageBox.showwarning( 'Warning', 
+
+            tkMessageBox.showwarning( 'Warning',
                                       'Please set the gender of this subject before adding a child.' )
             return
 
@@ -1010,7 +1030,7 @@ class Application( Frame ):
         for child in children:
             idsChildren.append( child.attrib['id'] )
 
-       
+
         self.idSelectedChild = None
         d = DialogSelectSubject( self.master, self.ftGraph, 'Select a child',
                                  self.OnSelectedChild, self.OnSelectedChildCancel,
@@ -1018,7 +1038,7 @@ class Application( Frame ):
                                  None, [ self.idIndividual ] + idsChildren )
 
         # Create a new child?
-        
+
         if ( self.idSelectedChild is None ):
 
             return
@@ -1026,15 +1046,15 @@ class Application( Frame ):
         elif ( self.idSelectedChild == '***  New Individual ***' ):
 
             self.idSelectedChild = self.GetNewIndividual()
-            
+
         else:
 
-            value = self.idSelectedChild.split( ', ' )   
+            value = self.idSelectedChild.split( ', ' )
             self.idSelectedChild = value[2]
 
         # Set the child
-            
-        self.ftGraph.SetChild( self.idIndividual, self.idSelectedChild ) 
+
+        self.ftGraph.SetChild( self.idIndividual, self.idSelectedChild )
         self.UpdateSelectedSubject()
 
 
@@ -1065,7 +1085,7 @@ class Application( Frame ):
     def OnSelectedChildCancel(self):
 
         self.idSelectedChild = None
-        
+
 
     # --------------------------------------------------------------------
     # OnRemoveChild
@@ -1084,7 +1104,7 @@ class Application( Frame ):
 
         if ( not self.idSelectedChild is None ):
             self.ftGraph.RemoveChild( self.idIndividual, self.idSelectedChild )
-            
+
 
         self.UpdateSelectedSubject()
 
@@ -1102,7 +1122,7 @@ class Application( Frame ):
             sender = val.widget
             idx = sender.curselection()
             selected = sender.get(idx)
-            value = selected.split( ', ' )   
+            value = selected.split( ', ' )
 
             self.idSelectedChild = value[2]
 
@@ -1115,7 +1135,7 @@ class Application( Frame ):
     def OnSelectedRemoveChildCancel(self):
 
         self.idSelectedChild = None
-        
+
 
     # --------------------------------------------------------------------
     # InitialiseSelectedSubject
@@ -1153,7 +1173,7 @@ class Application( Frame ):
             self.varSelectedMarriedYear.set(  marriageDate[2] )
 
         else:
-            
+
             self.varSelectedMarriedDay.set( '' )
             self.varSelectedMarriedMonth.set( '' )
             self.varSelectedMarriedYear.set( '' )
@@ -1169,9 +1189,9 @@ class Application( Frame ):
 
         self.InitialiseSelectedSubject()
 
-        self.UpdateFatherButtonAdd()        
-        self.UpdateMotherButtonAdd()        
-        self.UpdateSpouseButtonAdd()        
+        self.UpdateFatherButtonAdd()
+        self.UpdateMotherButtonAdd()
+        self.UpdateSpouseButtonAdd()
 
         self.UpdateChildrenListboxItems()
 
@@ -1281,7 +1301,7 @@ class Application( Frame ):
 
             imFamilyTree = PhotoImage( file='FamilyTree.gif' )
 
-                
+
     # --------------------------------------------------------------------
     # UpdateChildrenListboxItems
     # --------------------------------------------------------------------
@@ -1296,7 +1316,7 @@ class Application( Frame ):
         theLabel  = None
 
         children, idFamily = self.ftGraph.GetChildren( theIndividual )
-        
+
         for child in children:
 
             idChild = child.attrib['id']
@@ -1432,7 +1452,7 @@ class Application( Frame ):
 
         self.UpdateSelectedSubject()
         self.UpdateSubjectListboxItems( True )
-        
+
         return self.ftGraph.GetIndividualID( theIndividual )
 
 
@@ -1443,7 +1463,7 @@ class Application( Frame ):
     def OnNewSubject( self ):
 
         theIndividual = self.ftGraph.CreateIndividual( None, None )
-        
+
         self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
 
         self.UpdateSelectedSubject()
@@ -1469,17 +1489,17 @@ class Application( Frame ):
         if ( not surname is None ):
             label = label + ' ' + surname
 
-        if ( tkMessageBox.askyesno( "Delete", 
+        if ( tkMessageBox.askyesno( "Delete",
                                     "Delete subject: " + label + "?",
                                     default='yes' ) and
-             tkMessageBox.askyesno( "Delete", 
+             tkMessageBox.askyesno( "Delete",
                                     "Are you sure you want to delete subject: "  + label + "?",
                                     default='no' ) ):
 
             self.idIndividual = self.ftGraph.DeleteIndividual( self.idIndividual )
 
             if ( self.idIndividual is None ):
-            
+
                 theIndividual = self.ftGraph.CreateIndividual()
                 self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
 
@@ -1488,10 +1508,60 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    # SaveTree
+    # OpenTreeXML
     # --------------------------------------------------------------------
 
-    def SaveTree( self ):
+    def OpenTreeXML( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('data files', '.xml')]
+        options['parent'] = self
+        options['title'] = 'Open Family Tree Data'
+
+        self.fileInXML = tkFileDialog.askopenfilename( **options )
+
+        print 'Opening tree data file:', self.fileInXML
+
+        self.ftXML = ET.parse( self.fileInXML ).getroot()
+        self.ftGraph = FTG.FamilyTreeGraph( self.ftXML )
+
+        self.UpdateSelectedSubject()
+        self.UpdateSubjectListboxItems( True )
+
+    # --------------------------------------------------------------------
+    # SaveTreeXML
+    # --------------------------------------------------------------------
+
+    def SaveTreeXML( self ):
+
+        if ( not self.fileOutXML is None ):
+
+            print 'Saving tree data to filename:', self.fileOutXML
+
+            fout = open( self.fileOutXML, 'wb' )
+            fout.write( ET.tostring( self.ftXML ) )
+            fout.close()
+
+        elif ( self.fileInXML is None ):
+
+            self.SaveAsTreeXML()
+
+        else:
+
+            print 'Saving tree data to filename:', self.fileInXML
+
+            fout = open( self.fileInXML, 'wb' )
+            fout.write( ET.tostring( self.ftXML ) )
+            fout.close()
+
+
+    # --------------------------------------------------------------------
+    # SaveAsTreeXML
+    # --------------------------------------------------------------------
+
+    def SaveAsTreeXML( self ):
 
         options = {}
 
@@ -1500,7 +1570,7 @@ class Application( Frame ):
         options['initialfile'] = 'FamilyTree.xml'
         options['parent'] = self
         options['title'] = 'Save Family Tree Data'
-  
+
         filename = tkFileDialog.asksaveasfilename( **options )
 
         print 'Saving tree data to filename:', filename
@@ -1508,7 +1578,7 @@ class Application( Frame ):
         fout = open( filename, 'wb' )
         fout.write( ET.tostring( self.ftXML ) )
         fout.close()
-        
+
 
     # --------------------------------------------------------------------
     # OnPlotEntireTree
@@ -1519,18 +1589,18 @@ class Application( Frame ):
         options = {}
 
         options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
         options['initialfile'] = 'FamilyTree.gif'
         options['parent'] = self
         options['title'] = 'Specify Family Tree Plot Output File'
-  
+
         filename = tkFileDialog.asksaveasfilename( **options )
 
         print 'Saving entire tree plot to filename:', filename
 
         graph = self.ftGraph.PlotEntireTree()
         graph.write_gif( filename )
-        
+
 
     # --------------------------------------------------------------------
     # OnPlotSubjectTree
@@ -1541,11 +1611,11 @@ class Application( Frame ):
         options = {}
 
         options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
         options['initialfile'] = 'FamilyTree.gif'
         options['parent'] = self
         options['title'] = "Specify Subject's Family Tree Plot File"
-  
+
         filename = tkFileDialog.asksaveasfilename( **options )
 
         print "Saving subject's tree plot to filename:", filename
@@ -1553,7 +1623,7 @@ class Application( Frame ):
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotSubjectTree()
         graph.write_gif( filename )
-        
+
 
     # --------------------------------------------------------------------
     # OnPlotAncestors
@@ -1564,11 +1634,11 @@ class Application( Frame ):
         options = {}
 
         options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
         options['initialfile'] = 'FamilyTree.gif'
         options['parent'] = self
         options['title'] = "Specify Subject's Ancestors Tree Plot File"
-  
+
         filename = tkFileDialog.asksaveasfilename( **options )
 
         print 'Saving ancestors tree plot to filename:', filename
@@ -1576,7 +1646,7 @@ class Application( Frame ):
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotAncestorsTree()
         graph.write_gif( filename )
-        
+
 
     # --------------------------------------------------------------------
     # OnPlotDescendents
@@ -1587,11 +1657,11 @@ class Application( Frame ):
         options = {}
 
         options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
         options['initialfile'] = 'FamilyTree.gif'
         options['parent'] = self
         options['title'] = "Specify Subject's Descendents Tree Plot File"
-  
+
         filename = tkFileDialog.asksaveasfilename( **options )
 
         print 'Saving descendents tree plot to filename:', filename
@@ -1599,14 +1669,14 @@ class Application( Frame ):
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotDescendentsTree()
         graph.write_gif( filename )
-        
+
 
     # --------------------------------------------------------------------
     # OnKeypress
     # --------------------------------------------------------------------
 
     def OnKeypress( self, event ):
-        
+
         print "OnKeypress(): ", event.keysym
 
 
@@ -1634,22 +1704,16 @@ print 'Input XML family tree file:', args.fileIn
 print 'Output family tree image:', args.fileOut
 
 
-if ( args.fileIn is not None ):
-    
-    ft = ET.parse( args.fileIn ).getroot()
-
-else:
-
-    ft = ET.Element( 'FamilyTree' )
-
 root = Tk()
 
 root.attributes("-topmost", True)
 root.attributes("-topmost", False)
 
+root.title( 'Family Tree Editor' )
+
 #root.geometry('{}x{}'.format(1200, 900))
 
-app = Application( root, ft, args.fileOut )
+app = Application( root, args.fileIn, args.fileOut )
 app.mainloop()
 root.destroy()
 
