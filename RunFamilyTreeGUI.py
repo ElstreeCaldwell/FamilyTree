@@ -55,7 +55,7 @@ class DialogSelectSubject:
         # Yes...
 
         self.top = Toplevel(parent)
-        self.top.geometry( '{}x{}'.format( 300, 900 ) )
+        #self.top.geometry( '{}x{}'.format( 300, 900 ) )
 
         self.top.columnconfigure(0, weight=1)
         self.top.rowconfigure(0, weight=1)	
@@ -183,6 +183,7 @@ class Application( Frame ):
 
         self.InitialiseMemberParameters()
 
+        self.CreateMenuBar()
         self.CreateWidgets()
         self.UpdateSelectedSubject()
         self.UpdateSubjectListboxItems( True )
@@ -200,7 +201,7 @@ class Application( Frame ):
 
             print 'Writing modified XML to file:', self.fileOutXML
             fout = open( self.fileOutXML, 'wb' )
-            fout.write( ET.tostring( self.ft ) )
+            fout.write( ET.tostring( self.ftXML ) )
             fout.close()
             
         
@@ -248,7 +249,49 @@ class Application( Frame ):
         self.varSelectedSpouse = StringVar()
 
         self.InitialiseSelectedSubject()
+        
 
+    # --------------------------------------------------------------------
+    # CreateMenuBar
+    # --------------------------------------------------------------------
+
+    def CreateMenuBar(self):
+      
+        menubar = Menu( self.master )
+
+        self.master.config( menu=menubar )
+
+        # The File Menu
+        
+        fileMenu = Menu(menubar)       
+        
+        fileMenu.add_command( label="Save", underline=0, command=self.SaveTree )
+        
+        fileMenu.add_separator()
+        
+        fileMenu.add_command(label="Quit", underline=0, command=self.quit)
+
+        menubar.add_cascade(label="File", underline=0, menu=fileMenu)        
+ 
+
+       # The Plot Menu
+        
+        plotMenu = Menu(menubar)       
+        
+        plotMenu.add_command( label="Plot Entire Tree",
+                              underline=0, command=self.OnPlotEntireTree )
+
+        plotMenu.add_command( label="Plot Subject's Tree",
+                              underline=0, command=self.OnPlotSubjectTree )
+
+        plotMenu.add_command( label="Plot Tree of Subject's Ancestors",
+                              underline=0, command=self.OnPlotAncestors )
+
+        plotMenu.add_command( label="Plot Tree of Subject's Descendents",
+                              underline=0, command=self.OnPlotDescendents )
+        
+        menubar.add_cascade(label="Plot", underline=0, menu=plotMenu)        
+ 
 
     # --------------------------------------------------------------------
     # CreateWidgets
@@ -272,7 +315,6 @@ class Application( Frame ):
         self.buttonNewSubject['command'] = self.OnNewSubject
         
         self.buttonNewSubject.grid(row=iRow, column=0, columnspan=2, sticky=N+S+E+W)
-
 
 
         iRow = 0
@@ -535,17 +577,6 @@ class Application( Frame ):
         self.buttonRemoveChild['command'] = self.OnRemoveChild
         
         self.buttonRemoveChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
-
-        iRow = iRow + 1
-
-
-        # Quit
-        self.buttonQuit = Button(self)
-        self.buttonQuit['text'] = 'QUIT'
-        self.buttonQuit['fg']   = 'red'
-        self.buttonQuit['command'] =  self.quit
-        
-        self.buttonQuit.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S+E+W)
 
 
         for column in range( 30 ):
@@ -1457,6 +1488,120 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
+    # SaveTree
+    # --------------------------------------------------------------------
+
+    def SaveTree( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
+        options['initialfile'] = 'FamilyTree.xml'
+        options['parent'] = self
+        options['title'] = 'Save Family Tree Data'
+  
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print 'Saving tree data to filename:', filename
+
+        fout = open( filename, 'wb' )
+        fout.write( ET.tostring( self.ftXML ) )
+        fout.close()
+        
+
+    # --------------------------------------------------------------------
+    # OnPlotEntireTree
+    # --------------------------------------------------------------------
+
+    def OnPlotEntireTree( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.gif'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['initialfile'] = 'FamilyTree.gif'
+        options['parent'] = self
+        options['title'] = 'Specify Family Tree Plot Output File'
+  
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print 'Saving entire tree plot to filename:', filename
+
+        graph = self.ftGraph.PlotEntireTree()
+        graph.write_gif( filename )
+        
+
+    # --------------------------------------------------------------------
+    # OnPlotSubjectTree
+    # --------------------------------------------------------------------
+
+    def OnPlotSubjectTree( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.gif'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['initialfile'] = 'FamilyTree.gif'
+        options['parent'] = self
+        options['title'] = "Specify Subject's Family Tree Plot File"
+  
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print "Saving subject's tree plot to filename:", filename
+
+        self.ftGraph.SetIndividual( self.idIndividual )
+        graph = self.ftGraph.PlotSubjectTree()
+        graph.write_gif( filename )
+        
+
+    # --------------------------------------------------------------------
+    # OnPlotAncestors
+    # --------------------------------------------------------------------
+
+    def OnPlotAncestors( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.gif'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['initialfile'] = 'FamilyTree.gif'
+        options['parent'] = self
+        options['title'] = "Specify Subject's Ancestors Tree Plot File"
+  
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print 'Saving ancestors tree plot to filename:', filename
+
+        self.ftGraph.SetIndividual( self.idIndividual )
+        graph = self.ftGraph.PlotAncestorsTree()
+        graph.write_gif( filename )
+        
+
+    # --------------------------------------------------------------------
+    # OnPlotDescendents
+    # --------------------------------------------------------------------
+
+    def OnPlotDescendents( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.gif'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.gif')]
+        options['initialfile'] = 'FamilyTree.gif'
+        options['parent'] = self
+        options['title'] = "Specify Subject's Descendents Tree Plot File"
+  
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print 'Saving descendents tree plot to filename:', filename
+
+        self.ftGraph.SetIndividual( self.idIndividual )
+        graph = self.ftGraph.PlotDescendentsTree()
+        graph.write_gif( filename )
+        
+
+    # --------------------------------------------------------------------
     # OnKeypress
     # --------------------------------------------------------------------
 
@@ -1502,7 +1647,7 @@ root = Tk()
 root.attributes("-topmost", True)
 root.attributes("-topmost", False)
 
-root.geometry('{}x{}'.format(1200, 900))
+#root.geometry('{}x{}'.format(1200, 900))
 
 app = Application( root, ft, args.fileOut )
 app.mainloop()

@@ -30,9 +30,29 @@ class FamilyTreeGraph( FamilyTreeXML ):
         self.ancestors = ancestors
         self.descendents = descendents
 
+        self.nodes = {}
+        self.theIndividual = None
+
+ 
+    # --------------------------------------------------------------------
+    #  SetIndividual
+    # --------------------------------------------------------------------
+
+    def SetIndividual( self, idIndividual ):
+
+        self.idIndividual = idIndividual
+        
+ 
+    # --------------------------------------------------------------------
+    #  InitialiseNodes
+    # --------------------------------------------------------------------
+
+    def InitialiseNodes( self ):
+
         # Make the nodes
 
         nIndividuals = 0
+
         self.nodes = {}
         self.theIndividual = None
 
@@ -90,43 +110,153 @@ class FamilyTreeGraph( FamilyTreeXML ):
         
         if ( self.theIndividual is not None ):
         
-            try:
-                self.graph = pydot.Dot(graph_type='digraph', strict=True)
-        
-                if ( self.descendents ):
-                    self.PlotDescendents( self.theIndividual )
-        
-                if ( self.ancestors ):
-                    self.PlotAncestors( self.theIndividual )
-        
-                if ( ( not self.ancestors ) and ( not self.descendents ) ):
-                    self.PlotIndividual( self.theIndividual, True, True, True, True )
-         
-         
-            except:
-                print "ERROR: ", sys.exc_info()[0]
-                raise
-            
+             self.graph = PlotSubTree()
+
         
         # Plot the whole tree
         # ~~~~~~~~~~~~~~~~~~~
         
         else:
         
-            try:
-                self.graph = pydot.Dot(graph_type='digraph', strict=True)
-        
-                for individual in self.GetIndividuals():
-            
-                    self.PlotIndividual( individual )
-        
-            except:
-                print "ERROR: ", sys.exc_info()[0]
-                raise
+            self.graph = PlotEntireTree()
 
 
         return self.graph
             
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def PlotSubTree( self ):
+
+        self.InitialiseNodes()
+        
+        try:
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            if ( self.descendents ):
+                self.PlotDescendents( self.theIndividual )
+        
+            if ( self.ancestors ):
+                self.PlotAncestors( self.theIndividual )
+                    
+            if ( ( not self.ancestors ) and ( not self.descendents ) ):
+                self.PlotIndividual( self.theIndividual, True, True, True, True )
+         
+         
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+        return self.graph
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def PlotAncestorsTree( self ):
+
+        self.InitialiseNodes()
+        
+        try:
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            self.PlotAncestors( self.theIndividual )
+         
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+        return self.graph
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def PlotDescendentsTree( self ):
+
+        self.InitialiseNodes()
+        
+        try:
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            self.PlotDescendents( self.theIndividual )
+         
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+        return self.graph
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def PlotSubjectTree( self ):
+
+        self.InitialiseNodes()
+
+        try:
+        
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            self.PlotIndividual( self.theIndividual, True, True, True, True )
+         
+         
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+        return self.graph
+
+    # ----------------------------------------------------------------------
+
+
+   # ----------------------------------------------------------------------
+    def PlotSubTree( self ):
+
+        self.InitialiseNodes()
+        
+        try:
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            if ( self.descendents ):
+                self.PlotDescendents( self.theIndividual )
+        
+            if ( self.ancestors ):
+                self.PlotAncestors( self.theIndividual )
+                    
+            if ( ( not self.ancestors ) and ( not self.descendents ) ):
+                self.PlotIndividual( self.theIndividual, True, True, True, True )
+         
+         
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+        return self.graph
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def PlotEntireTree( self ):
+
+        self.InitialiseNodes()
+
+        try:
+            self.graph = pydot.Dot(graph_type='digraph', strict=True)
+        
+            for individual in self.GetIndividuals():
+            
+                self.PlotIndividual( individual )
+        
+        except:
+            print "ERROR: ", sys.exc_info()[0]
+            raise
+
+
+        return self.graph
     # ----------------------------------------------------------------------
 
 
