@@ -110,7 +110,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
         
         if ( self.theIndividual is not None ):
         
-             self.graph = PlotSubTree()
+             self.graph = self.PlotSubTree()
 
         
         # Plot the whole tree
@@ -118,7 +118,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
         
         else:
         
-            self.graph = PlotEntireTree()
+            self.graph = self.PlotEntireTree()
 
 
         return self.graph
