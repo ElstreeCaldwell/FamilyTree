@@ -1588,9 +1588,9 @@ class Application( Frame ):
 
         options = {}
 
-        options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
-        options['initialfile'] = 'FamilyTree.gif'
+        options['defaultextension'] = '.png'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
+        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = 'Specify Family Tree Plot Output File'
 
@@ -1599,7 +1599,7 @@ class Application( Frame ):
         print 'Saving entire tree plot to filename:', filename
 
         graph = self.ftGraph.PlotEntireTree()
-        graph.write_gif( filename )
+        graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1610,9 +1610,9 @@ class Application( Frame ):
 
         options = {}
 
-        options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
-        options['initialfile'] = 'FamilyTree.gif'
+        options['defaultextension'] = '.png'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
+        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Family Tree Plot File"
 
@@ -1622,7 +1622,7 @@ class Application( Frame ):
 
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotSubjectTree()
-        graph.write_gif( filename )
+        graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1633,9 +1633,9 @@ class Application( Frame ):
 
         options = {}
 
-        options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
-        options['initialfile'] = 'FamilyTree.gif'
+        options['defaultextension'] = '.png'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
+        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Ancestors Tree Plot File"
 
@@ -1645,7 +1645,7 @@ class Application( Frame ):
 
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotAncestorsTree()
-        graph.write_gif( filename )
+        graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1656,9 +1656,9 @@ class Application( Frame ):
 
         options = {}
 
-        options['defaultextension'] = '.gif'
-        options['filetypes'] = [('all files', '.*'), ('image files', '.gif', '.png')]
-        options['initialfile'] = 'FamilyTree.gif'
+        options['defaultextension'] = '.png'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
+        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Descendents Tree Plot File"
 
@@ -1668,7 +1668,7 @@ class Application( Frame ):
 
         self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotDescendentsTree()
-        graph.write_gif( filename )
+        graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
