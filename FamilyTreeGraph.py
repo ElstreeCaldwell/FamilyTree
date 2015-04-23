@@ -199,9 +199,19 @@ class FamilyTreeGraph( FamilyTreeXML ):
         try:
         
             self.graph = pydot.Dot(graph_type='digraph', strict=True)
+
+            flgPlotSpouse   = True
+            flgPlotParents  = True
+            flgPlotChildren = True
+            flgPlotSiblings = True
+            flgPlotWife     = True
         
-            self.PlotIndividual( self.theIndividual, True, True, True, True )
-         
+            self.PlotIndividual( self.theIndividual,
+                                 flgPlotSpouse,
+                                 flgPlotParents,
+                                 flgPlotChildren,
+                                 flgPlotSiblings,
+                                 flgPlotWife )
          
         except:
             print "ERROR: ", sys.exc_info()[0]
@@ -403,9 +413,10 @@ class FamilyTreeGraph( FamilyTreeXML ):
             edge = pydot.Edge( self.nodes[ mother.attrib['id'] ], self.nodes[ id ] )
             self.graph.add_edge( edge )
         
-            #edge = pydot.Edge( self.nodes[ father.attrib['id'] ], self.nodes[ id ] )
-            #self.graph.add_edge( edge )
-        
+            edge = pydot.Edge( self.nodes[ father.attrib['id'] ], self.nodes[ mother.attrib['id'] ],
+                               dir='both', arrowhead='dot', arrowtail='dot', penwidth='2' )
+            self.graph.add_edge( edge )
+
         elif ( mother is not None ):
             print 'PlotParents Mother:', self.GetNameAndID( mother ), '( Family:', idFamilyChild, ')'
     
