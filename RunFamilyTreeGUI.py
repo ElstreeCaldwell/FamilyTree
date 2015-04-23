@@ -1168,38 +1168,22 @@ class Application( Frame ):
         self.varSelectedDeathMonth.set( theIndividual.findtext('DEATH/DATE/month') or '' )
         self.varSelectedDeathYear.set(  theIndividual.findtext('DEATH/DATE/year') or '' )
 
-        marriageDate = self.ftGraph.GetDateMarried( theIndividual )
+        marriageDay, marriageMonth, marriageYear = self.ftGraph.GetDateMarried( theIndividual )
 
-        if ( ( not marriageDate is None ) and ( len( marriageDate ) > 0 ) ):
-
-            print 'marriageDate', marriageDate
-
-            marriageMatch = re.search( '(.*?)\s*(\d{4})', marriageDate )
-
-            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 2 ) is None ) ):
-                 self.varSelectedMarriedYear.set( marriageMatch.group( 2 ) )
-                 marriageMatch = marriageMatch.group( 1 )
-            else:
-                self.varSelectedMarriedYear.set( '' )
-                marriageMatch = marriageDate
-
-            marriageMatch = re.search( '(\d{0,2})\s*([a-zA-Z]{0,3})', marriageMatch )
-
-            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 1 ) is None ) ):
-                self.varSelectedMarriedDay.set( marriageMatch.group( 1 ) )
-            else:
-                self.varSelectedMarriedDay.set( '' )
-
-            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 2 ) is None ) ):
-                self.varSelectedMarriedMonth.set( marriageMatch.group( 2 ) )
-            else:
-                self.varSelectedMarriedMonth.set( '' )
-
-        else:
-
+        if ( marriageDay is None ):
             self.varSelectedMarriedDay.set( '' )
+        else:
+            self.varSelectedMarriedDay.set( marriageDay )
+
+        if ( marriageMonth is None ):
             self.varSelectedMarriedMonth.set( '' )
+        else:
+            self.varSelectedMarriedMonth.set( marriageMonth )
+
+        if ( marriageYear is None ):
             self.varSelectedMarriedYear.set( '' )
+        else:
+            self.varSelectedMarriedYear.set( marriageYear )
 
         self.varSelectedSpouse.set( theIndividual.findtext( 'FAMILY_SPOUSE' ) )
 
