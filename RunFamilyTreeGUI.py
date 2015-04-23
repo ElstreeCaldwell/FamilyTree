@@ -118,10 +118,17 @@ class DialogSelectSubject:
                   ( ( self.idExclusionList is None ) or
                     ( not idIndi in self.idExclusionList ) ) ):
 
+                label = self.idIndividual
+
                 forename = individual.findtext('NAME/forename') or ''
                 surname  = individual.findtext('NAME/surname') or ''
 
-                label = ', '.join( [ surname, forename, idIndi,  ] )
+                if ( not forename is None ):
+                    label = forename + ' ' + label
+
+                if ( not surname is None ):
+                    label = surname + ' ' + label
+
                 labels.append( label )
 
         return labels
@@ -248,6 +255,7 @@ class Application( Frame ):
 
         self.varSelectedLastName = StringVar()
         self.varSelectedFirstName = StringVar()
+        self.varSelectedAlias = StringVar()
 
         self.varSelectedSex = StringVar()
 
@@ -405,6 +413,19 @@ class Application( Frame ):
         self.entrySelectedFirstName.grid( row=iRow, rowspan=1,
                                           column=iCol+1, columnspan=3, sticky=N+S+E+W )
         self.varSelectedFirstName.trace( "w", self.OnFirstNameEdited )
+
+        iRow = iRow + 1
+
+        # Alias
+        self.labelAlias = Label(self, text='Alias:', anchor=W, justify=LEFT)
+        self.labelAlias.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.entrySelectedAlias = \
+            Entry(self, textvariable=self.varSelectedAlias)
+
+        self.entrySelectedAlias.grid( row=iRow, rowspan=1,
+                                          column=iCol+1, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedAlias.trace( "w", self.OnAliasEdited )
 
         iRow = iRow + 1
 
@@ -693,7 +714,7 @@ class Application( Frame ):
         self.ChildrenScrollbarY['command'] = self.ChildrenListbox.yview
 
         self.ChildrenListbox.bind( '<<ListboxSelect>>',
-                                 self.OnChildrenListboxSelect )
+                                 self.OnSubjectListboxSelect )
 
 
     # --------------------------------------------------------------------
@@ -705,25 +726,9 @@ class Application( Frame ):
         sender = val.widget
 
         idx = sender.curselection()
-        value = sender.get(idx).split( ', ' )
+        value = sender.get(idx)
 
-        self.idIndividual = value[2]
-
-        self.UpdateSelectedSubject()
-
-
-    # --------------------------------------------------------------------
-    # OnChildrenListboxSelect
-    # --------------------------------------------------------------------
-
-    def OnChildrenListboxSelect(self, val):
-
-        sender = val.widget
-
-        idx = sender.curselection()
-        value = sender.get(idx).split( ', ' )
-
-        self.idIndividual = value[2]
+        self.idIndividual = re.search( 'I\d\d\d$', value ).group( 0 )
 
         self.UpdateSelectedSubject()
 
@@ -1151,6 +1156,7 @@ class Application( Frame ):
 
         self.varSelectedLastName.set( theIndividual.findtext('NAME/surname') or '' )
         self.varSelectedFirstName.set( theIndividual.findtext('NAME/forename') or '' )
+        self.varSelectedAlias.set( theIndividual.findtext('ALIAS') or '' )
 
         self.varSelectedSex.set( theIndividual.findtext('SEX') or '' )
 
@@ -1166,11 +1172,28 @@ class Application( Frame ):
 
         if ( ( not marriageDate is None ) and ( len( marriageDate ) > 0 ) ):
 
-            marriageDate = marriageDate.split()
+            print 'marriageDate', marriageDate
 
-            self.varSelectedMarriedDay.set(   marriageDate[0] )
-            self.varSelectedMarriedMonth.set( marriageDate[1] )
-            self.varSelectedMarriedYear.set(  marriageDate[2] )
+            marriageMatch = re.search( '(.*?)\s*(\d{4})', marriageDate )
+
+            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 2 ) is None ) ):
+                 self.varSelectedMarriedYear.set( marriageMatch.group( 2 ) )
+                 marriageMatch = marriageMatch.group( 1 )
+            else:
+                self.varSelectedMarriedYear.set( '' )
+                marriageMatch = marriageDate
+
+            marriageMatch = re.search( '(\d{0,2})\s*([a-zA-Z]{0,3})', marriageMatch )
+
+            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 1 ) is None ) ):
+                self.varSelectedMarriedDay.set( marriageMatch.group( 1 ) )
+            else:
+                self.varSelectedMarriedDay.set( '' )
+
+            if ( ( not marriageMatch is None ) and ( not marriageMatch.group( 2 ) is None ) ):
+                self.varSelectedMarriedMonth.set( marriageMatch.group( 2 ) )
+            else:
+                self.varSelectedMarriedMonth.set( '' )
 
         else:
 
@@ -1270,11 +1293,17 @@ class Application( Frame ):
         theLabel  = None
         for individual in self.ftGraph.GetIndividuals():
 
-            idIndividual = individual.attrib['id']
+            label = individual.attrib['id']
+
             forename = individual.findtext('NAME/forename') or ''
             surname  = individual.findtext('NAME/surname') or ''
 
-            label = ', '.join( [ surname, forename, idIndividual,  ] )
+            if ( not forename is None ):
+                label = forename + ' ' + label
+
+            if ( not surname is None ):
+                label = surname + ' ' + label
+
             labels.append( label )
 
             if ( individual == theIndividual ):
@@ -1319,11 +1348,18 @@ class Application( Frame ):
 
         for child in children:
 
-            idChild = child.attrib['id']
+            label = child.attrib['id']
+
             forename = child.findtext('NAME/forename') or ''
             surname  = child.findtext('NAME/surname') or ''
 
-            label = ', '.join( [ surname, forename, idChild,  ] )
+
+            if ( not forename is None ):
+                label = forename + ' ' + label
+
+            if ( not surname is None ):
+                label = surname + ' ' + label
+
             labels.append( label )
 
         labels = sorted( labels )
@@ -1349,6 +1385,16 @@ class Application( Frame ):
     def OnLastNameEdited(self, *args):
 
         self.ftGraph.SetLastName( self.idIndividual, self.varSelectedLastName.get() )
+        self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnAliasEdited
+    # --------------------------------------------------------------------
+
+    def OnAliasEdited(self, *args):
+
+        self.ftGraph.SetAlias( self.idIndividual, self.varSelectedAlias.get() )
         self.UpdateSubjectListboxItems( True )
 
 
@@ -1484,10 +1530,10 @@ class Application( Frame ):
         surname = self.ftGraph.GetSurname( theIndividual )
 
         if ( not forename is None ):
-            label = label + ' ' + forename
+            label = forename + ' ' + label
 
         if ( not surname is None ):
-            label = label + ' ' + surname
+            label = surname + ' ' + label
 
         if ( tkMessageBox.askyesno( "Delete",
                                     "Delete subject: " + label + "?",
