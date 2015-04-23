@@ -154,23 +154,11 @@ class FamilyTreeXML( object ):
         
             if ( date is not None ):
     
-                dateList = []
-    
                 day   = date.findtext('day')
-                if ( day ):
-                    dateList.append( day )
-    
                 month = date.findtext('month')
-                if ( month ):
-                    dateList.append( month )
-    
                 year  = date.findtext('year')
-                if ( year ):
-                    dateList.append( year )
     
-                dateText = ' '.join( dateList )
-    
-        return dateText
+        return ( day, month, year )
     
     # ----------------------------------------------------------------------
     
@@ -191,7 +179,7 @@ class FamilyTreeXML( object ):
                 if ( not marriage is None ):
                     return self.GetDate( marriage )
     
-        return None
+        return ( None, None, None )
     
     # ----------------------------------------------------------------------
     
