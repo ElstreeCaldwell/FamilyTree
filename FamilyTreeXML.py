@@ -713,7 +713,7 @@ class FamilyTreeXML( object ):
     # ----------------------------------------------------------------------
     def SetBirthYear( self, idIndividual, year ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
             
@@ -728,7 +728,7 @@ class FamilyTreeXML( object ):
     # ----------------------------------------------------------------------
     def SetBirthPlace( self, idIndividual, place ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
             
@@ -778,7 +778,7 @@ class FamilyTreeXML( object ):
     # ----------------------------------------------------------------------
     def SetDeathYear( self, idIndividual, year ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
             
@@ -793,7 +793,7 @@ class FamilyTreeXML( object ):
     # ----------------------------------------------------------------------
     def SetDeathPlace( self, idIndividual, place ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
             
@@ -808,12 +808,12 @@ class FamilyTreeXML( object ):
                 ePlace = ET.SubElement(eDeath, 'PLACE' )
 
             ePlace.text = place
-            
+
 
     # ----------------------------------------------------------------------
     def SetBurialPlace( self, idIndividual, place ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
             
@@ -1056,7 +1056,7 @@ class FamilyTreeXML( object ):
     # ----------------------------------------------------------------------
     def SetMarriedPlace( self, idIndividual, place ):
 
-        theIndividual = self.GetIndividual( self.idIndividual )
+        theIndividual = self.GetIndividual( idIndividual )
 
         if ( not theIndividual is None ):
 
