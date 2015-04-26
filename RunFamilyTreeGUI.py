@@ -417,7 +417,10 @@ class Application( Frame ):
         plotMenu.add_command( label="Plot Entire Tree",
                               underline=0, command=self.OnPlotEntireTree )
 
-        plotMenu.add_command( label="Plot Subject's Tree",
+        plotMenu.add_command( label="Plot Subject's Immediate Family",
+                              underline=0, command=self.OnPlotSubjectFamily )
+
+        plotMenu.add_command( label="Plot Subject's Family Tree",
                               underline=0, command=self.OnPlotSubjectTree )
 
         plotMenu.add_command( label="Plot Tree of Subject's Ancestors",
@@ -646,7 +649,7 @@ class Application( Frame ):
 
         nColumns = 3
         nRows = 5
-        self.labelSubjectNote = Label(self, text='Subject Notes', anchor=NW, justify=LEFT)
+        self.labelSubjectNote = Label(self, text='Subject Notes:', anchor=NW, justify=LEFT)
         self.labelSubjectNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.SubjectNoteScrollbarY = Scrollbar(self, orient=VERTICAL)
@@ -818,7 +821,7 @@ class Application( Frame ):
 
         nColumns = 3
         nRows = 5
-        self.labelFamilyNote = Label(self, text='Family Notes', anchor=NW, justify=LEFT)
+        self.labelFamilyNote = Label(self, text='Family Notes:', anchor=NW, justify=LEFT)
         self.labelFamilyNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.FamilyNoteScrollbarY = Scrollbar(self, orient=VERTICAL)
@@ -2047,10 +2050,10 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    # OnPlotSubjectTree
+    # OnPlotSubjectFamily
     # --------------------------------------------------------------------
 
-    def OnPlotSubjectTree( self ):
+    def OnPlotSubjectFamily( self ):
 
         options = {}
 
@@ -2065,8 +2068,33 @@ class Application( Frame ):
         print "Saving subject's tree plot to filename:", filename
 
         self.ftGraph.SetIndividual( self.idIndividual )
+        graph = self.ftGraph.PlotSubjectFamily()
+        graph.write_png( filename )
+
+
+    # --------------------------------------------------------------------
+    # OnPlotSubjectTree
+    # --------------------------------------------------------------------
+
+    def OnPlotSubjectTree( self ):
+
+        options = {}
+
+        options['defaultextension'] = '.png'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
+        options['initialfile'] = 'FamilyTree.png'
+        options['parent'] = self
+        options['title'] = "Specify Subject's Ancestors Tree Plot File"
+
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        print 'Saving ancestors tree plot to filename:', filename
+
+        self.ftGraph.SetIndividual( self.idIndividual )
         graph = self.ftGraph.PlotSubjectTree()
         graph.write_png( filename )
+
+
 
 
     # --------------------------------------------------------------------
@@ -2154,6 +2182,7 @@ root.attributes("-topmost", True)
 root.attributes("-topmost", False)
 
 root.title( 'Family Tree Editor' )
+
 
 #root.geometry('{}x{}'.format(1200, 900))
 
