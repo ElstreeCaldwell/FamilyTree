@@ -670,7 +670,7 @@ class FamilyTreeXML( object ):
 
         if ( not theIndividual is None ):
             
-            eBirth     = theIndividual.find('BIRTH')
+            eBirth = theIndividual.find('BIRTH')
 
             if ( eBirth is None ):
                 eBirth = ET.SubElement(theIndividual, 'BIRTH' )
@@ -678,6 +678,26 @@ class FamilyTreeXML( object ):
             self.SetYear( eBirth, year )
     
             
+    # ----------------------------------------------------------------------
+    def SetBirthPlace( self, idIndividual, place ):
+
+        theIndividual = self.GetIndividual( self.idIndividual )
+
+        if ( not theIndividual is None ):
+            
+            eBirth = theIndividual.find('BIRTH')
+
+            if ( eBirth is None ):
+                eBirth = ET.SubElement(theIndividual, 'BIRTH' )
+           
+            ePlace = eBirth.find('PLACE')
+            
+            if ( ePlace is None ):
+                ePlace = ET.SubElement(eBirth, 'PLACE' )
+
+            ePlace.text = place
+            
+
     # ----------------------------------------------------------------------
     def SetDeathDay( self, idIndividual, day ):
 
@@ -723,6 +743,46 @@ class FamilyTreeXML( object ):
             self.SetYear( eDeath, year )
     
             
+    # ----------------------------------------------------------------------
+    def SetDeathPlace( self, idIndividual, place ):
+
+        theIndividual = self.GetIndividual( self.idIndividual )
+
+        if ( not theIndividual is None ):
+            
+            eDeath = theIndividual.find('DEATH')
+
+            if ( eDeath is None ):
+                eDeath = ET.SubElement(theIndividual, 'DEATH' )
+           
+            ePlace = eDeath.find('PLACE')
+            
+            if ( ePlace is None ):
+                ePlace = ET.SubElement(eDeath, 'PLACE' )
+
+            ePlace.text = place
+            
+
+    # ----------------------------------------------------------------------
+    def SetBurialPlace( self, idIndividual, place ):
+
+        theIndividual = self.GetIndividual( self.idIndividual )
+
+        if ( not theIndividual is None ):
+            
+            eBurial = theIndividual.find('BURIAL')
+
+            if ( eBurial is None ):
+                eBurial = ET.SubElement(theIndividual, 'BURIAL' )
+           
+            ePlace = eBurial.find('PLACE')
+            
+            if ( ePlace is None ):
+                ePlace = ET.SubElement(eBurial, 'PLACE' )
+
+            ePlace.text = place
+            
+
     # ----------------------------------------------------------------------
     def SetDivorcedDay( self, idIndividual, day ):
 
@@ -946,6 +1006,40 @@ class FamilyTreeXML( object ):
                 self.SetYear( eMarried, year )
     
             
+    # ----------------------------------------------------------------------
+    def SetMarriedPlace( self, idIndividual, place ):
+
+        theIndividual = self.GetIndividual( self.idIndividual )
+
+        if ( not theIndividual is None ):
+
+            theFamily = self.GetFamily( theIndividual )
+
+            if ( theFamily is None ):
+
+                theFamily = self.CreateFamily()
+
+                eFamilySpouse = theIndividual.find( 'FAMILY_SPOUSE' )
+            
+                if ( eFamilySpouse is None ):
+                    eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+
+                eFamilySpouse.text =  theFamily.attrib['id']
+
+                
+            eMarriage = theFamily.find('MARRIAGE')
+
+            if ( eMarriage is None ):
+                eMarriage = ET.SubElement(theIndividual, 'MARRIAGE' )
+           
+            ePlace = eMarriage.find('PLACE')
+            
+            if ( ePlace is None ):
+                ePlace = ET.SubElement(eMarriage, 'PLACE' )
+                
+            ePlace.text = place
+            
+
     # ----------------------------------------------------------------------
     def SetFather( self, idIndividual, idFather ):
 

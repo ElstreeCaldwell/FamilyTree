@@ -361,14 +361,19 @@ class Application( Frame ):
         self.varSelectedBirthDay   = StringVar()
         self.varSelectedBirthMonth = StringVar()
         self.varSelectedBirthYear  = StringVar()
+        self.varSelectedBirthPlace = StringVar()
 
         self.varSelectedDeathDay   = StringVar()
         self.varSelectedDeathMonth = StringVar()
         self.varSelectedDeathYear  = StringVar()
+        self.varSelectedDeathPlace = StringVar()
+
+        self.varSelectedBurialPlace = StringVar()
 
         self.varSelectedMarriedDay   = StringVar()
         self.varSelectedMarriedMonth = StringVar()
         self.varSelectedMarriedYear  = StringVar()
+        self.varSelectedMarriedPlace = StringVar()
 
         self.varSelectedDivorcedDay   = StringVar()
         self.varSelectedDivorcedMonth = StringVar()
@@ -441,7 +446,7 @@ class Application( Frame ):
         iCol = 0
 
         # SearchSubjects
-        self.labelSearch = Label(self, text='Search')
+        self.labelSearch = Label(self, text='Subject Search')
         self.labelSearch.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S)
 
         iRow = iRow + 1
@@ -552,7 +557,7 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Birth Date
-        self.labelBirth = Label(self, text='Birth:', anchor=W, justify=LEFT)
+        self.labelBirth = Label(self, text='Born:', anchor=W, justify=LEFT)
         self.labelBirth.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedBirthDay = OptionMenu( self, self.varSelectedBirthDay, *days )
@@ -576,8 +581,20 @@ class Application( Frame ):
 
         iRow = iRow + 1
 
+        self.labelBirthPlace = Label(self, text='Location:', anchor=W, justify=RIGHT)
+        self.labelBirthPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
+
+        self.entrySelectedBirthPlace = \
+            Entry(self, textvariable=self.varSelectedBirthPlace)
+
+        self.entrySelectedBirthPlace.grid( row=iRow, rowspan=1,
+                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedBirthPlace.trace( "w", self.OnBirthPlaceEdited )
+
+        iRow = iRow + 1
+
         # Death Date
-        self.labelDeath = Label(self, text='Death:', anchor=W, justify=LEFT)
+        self.labelDeath = Label(self, text='Died:', anchor=W, justify=LEFT)
         self.labelDeath.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.optionSelectedDeathDay = OptionMenu( self, self.varSelectedDeathDay, *days )
@@ -598,6 +615,30 @@ class Application( Frame ):
         self.entrySelectedDeathYear.grid( row=iRow, rowspan=1,
                                           column=iCol+3, columnspan=2, sticky=N+S+E+W )
         self.varSelectedDeathYear.trace( "w", self.OnDeathYearEdited )
+
+        iRow = iRow + 1
+
+        self.labelDeathPlace = Label(self, text='Location:', anchor=W, justify=RIGHT)
+        self.labelDeathPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
+
+        self.entrySelectedDeathPlace = \
+            Entry(self, textvariable=self.varSelectedDeathPlace)
+
+        self.entrySelectedDeathPlace.grid( row=iRow, rowspan=1,
+                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedDeathPlace.trace( "w", self.OnDeathPlaceEdited )
+
+        iRow = iRow + 1
+
+        self.labelBurialPlace = Label(self, text='Buried:', anchor=W, justify=RIGHT)
+        self.labelBurialPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
+
+        self.entrySelectedBurialPlace = \
+            Entry(self, textvariable=self.varSelectedBurialPlace)
+
+        self.entrySelectedBurialPlace.grid( row=iRow, rowspan=1,
+                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedBurialPlace.trace( "w", self.OnBurialPlaceEdited )
 
         iRow = iRow + 1
 
@@ -727,6 +768,18 @@ class Application( Frame ):
 
         iRow = iRow + 1
 
+        self.labelMarriedPlace = Label(self, text='Location:', anchor=W, justify=RIGHT)
+        self.labelMarriedPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
+
+        self.entrySelectedMarriedPlace = \
+            Entry(self, textvariable=self.varSelectedMarriedPlace)
+
+        self.entrySelectedMarriedPlace.grid( row=iRow, rowspan=1,
+                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
+        self.varSelectedMarriedPlace.trace( "w", self.OnMarriedPlaceEdited )
+
+        iRow = iRow + 1
+
         # Divorced Date
         self.labelDivorced = Label(self, text='Divorced:', anchor=W, justify=LEFT)
         self.labelDivorced.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
@@ -759,7 +812,7 @@ class Application( Frame ):
 
         self.buttonRemoveSpouse.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
-        iRow = iRow + 1
+        iRow = iRow + 3
 
         # Family Note
 
@@ -1357,10 +1410,14 @@ class Application( Frame ):
         self.varSelectedBirthDay.set(   theIndividual.findtext('BIRTH/DATE/day') or '' )
         self.varSelectedBirthMonth.set( theIndividual.findtext('BIRTH/DATE/month') or '' )
         self.varSelectedBirthYear.set(  theIndividual.findtext('BIRTH/DATE/year') or '' )
+        self.varSelectedBirthPlace.set( theIndividual.findtext('BIRTH/PLACE') or '' )
 
         self.varSelectedDeathDay.set(   theIndividual.findtext('DEATH/DATE/day') or '' )
         self.varSelectedDeathMonth.set( theIndividual.findtext('DEATH/DATE/month') or '' )
         self.varSelectedDeathYear.set(  theIndividual.findtext('DEATH/DATE/year') or '' )
+        self.varSelectedDeathPlace.set( theIndividual.findtext('DEATH/PLACE') or '' )
+
+        self.varSelectedBurialPlace.set( theIndividual.findtext('BURIAL/PLACE') or '' )
 
         marriageDay, marriageMonth, marriageYear = self.ftGraph.GetDateMarried( theIndividual )
 
@@ -1378,6 +1435,12 @@ class Application( Frame ):
             self.varSelectedMarriedYear.set( '' )
         else:
             self.varSelectedMarriedYear.set( marriageYear )
+
+        theFamily = self.ftGraph.GetFamily( theIndividual )
+        if ( theFamily is None ):
+            self.varSelectedMarriedPlace.set( '' )
+        else:
+            self.varSelectedMarriedPlace.set( theFamily.findtext('MARRIAGE/PLACE') or '' )
 
         divorceDay, divorceMonth, divorceYear = self.ftGraph.GetDateDivorced( theIndividual )
 
@@ -1682,6 +1745,15 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
+    # OnBirthPlaceEdited
+    # --------------------------------------------------------------------
+
+    def OnBirthPlaceEdited(self, *args):
+
+        self.ftGraph.SetBirthPlace( self.idIndividual, self.varSelectedBirthPlace.get() )
+
+
+    # --------------------------------------------------------------------
     # OnDeathDayOptionSelect
     # --------------------------------------------------------------------
 
@@ -1706,6 +1778,24 @@ class Application( Frame ):
     def OnDeathYearEdited(self, *args):
 
         self.ftGraph.SetDeathYear( self.idIndividual, self.varSelectedDeathYear.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnDeathPlaceEdited
+    # --------------------------------------------------------------------
+
+    def OnDeathPlaceEdited(self, *args):
+
+        self.ftGraph.SetDeathPlace( self.idIndividual, self.varSelectedDeathPlace.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnBurialPlaceEdited
+    # --------------------------------------------------------------------
+
+    def OnBurialPlaceEdited(self, *args):
+
+        self.ftGraph.SetBurialPlace( self.idIndividual, self.varSelectedBurialPlace.get() )
 
 
     # --------------------------------------------------------------------
@@ -1755,6 +1845,15 @@ class Application( Frame ):
     def OnMarriedYearEdited(self, *args):
 
         self.ftGraph.SetMarriedYear( self.idIndividual, self.varSelectedMarriedYear.get() )
+
+
+    # --------------------------------------------------------------------
+    # OnMarriedPlaceEdited
+    # --------------------------------------------------------------------
+
+    def OnMarriedPlaceEdited(self, *args):
+
+        self.ftGraph.SetMarriedPlace( self.idIndividual, self.varSelectedMarriedPlace.get() )
 
 
     # --------------------------------------------------------------------
