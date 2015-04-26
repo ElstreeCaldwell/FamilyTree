@@ -224,6 +224,7 @@ class Application( Frame ):
         self.master = master
         Frame.__init__(self, self.master)
 
+
         self.etXML = None
         self.ftXML = None
 
@@ -232,10 +233,10 @@ class Application( Frame ):
 
         self.ReadXML()
 
-        self.grid()
-
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
+
+        self.grid(row=0, column=0, sticky=N+S+E+W)
 
         self.InitialiseMemberParameters()
 
@@ -940,11 +941,11 @@ class Application( Frame ):
         self.buttonRemoveChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
 
 
-        for column in range( 30 ):
-            self.columnconfigure(column, weight=1)
+        #for column in range( iCol + 1 ):
+        #    self.columnconfigure(column, weight=1)
 
-        for row in range( 30 ):
-            self.rowconfigure(row, weight=1)
+        #for row in range( iRow ):
+        #    self.rowconfigure(row, weight=1)
 
 
     # --------------------------------------------------------------------
@@ -991,6 +992,9 @@ class Application( Frame ):
         self.SubjectListbox.bind( '<<ListboxSelect>>',
                                  self.OnSubjectListboxSelect )
 
+        for c in range( column, column + nColumns - 1 ):
+            self.columnconfigure(c, weight=1)
+
 
     # --------------------------------------------------------------------
     # CreateChildrenListbox
@@ -1035,6 +1039,9 @@ class Application( Frame ):
 
         self.ChildrenListbox.bind( '<<ListboxSelect>>',
                                  self.OnSubjectListboxSelect )
+
+        for c in range( column, column + nColumns - 1 ):
+            self.columnconfigure(c, weight=1)
 
 
     # --------------------------------------------------------------------
