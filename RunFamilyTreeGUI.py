@@ -241,8 +241,9 @@ class Application( Frame ):
         """Initialise the application class"""
 
         self.master = master
+        #Frame.__init__(self, self.master, bg='gray98')
         Frame.__init__(self, self.master)
-
+    
         self.etXML = None
         self.ftXML = None
 
