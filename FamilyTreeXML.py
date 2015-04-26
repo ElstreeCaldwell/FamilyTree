@@ -89,6 +89,40 @@ class FamilyTreeXML( object ):
     
         return ''.join( [ idIndi + '\n', name ] )
     
+    # ----------------------------------------------------------------------    
+    def GetLabel(self, individual):
+
+        label = individual.attrib['id']
+
+        forename = self.GetForename( individual )
+        surname  = self.GetSurname( individual )
+
+        if ( ( not forename is None ) and ( len( forename ) != 0 ) ):
+            label = forename + ' ' + label
+
+        if ( ( not surname is None ) and ( len( surname ) != 0 ) ):
+
+            if ( ( not forename is None ) and ( len( forename ) != 0 ) ):
+                label = surname + ', ' + label
+            else:
+                label = surname + ' ' + label
+
+        return label
+
+    
+    # ----------------------------------------------------------------------
+    def GetFamily( self, individual ):
+
+        if ( not individual is None ):
+            idFamily = individual.findtext('FAMILY_SPOUSE')
+        
+            if ( not idFamily is None ):
+
+                for family in self.GetFamilyWithID( idFamily ):
+                    return family
+
+        return None
+    
     # ----------------------------------------------------------------------
     
     
@@ -148,6 +182,10 @@ class FamilyTreeXML( object ):
     def GetDate( self, element ):
     
         dateText = None
+
+        day = None
+        month = None
+        year = None
     
         if ( element is not None ):
             date = element.find( 'DATE' )
@@ -182,6 +220,24 @@ class FamilyTreeXML( object ):
         return ( None, None, None )
     
     # ----------------------------------------------------------------------
+    def GetDateDivorced( self, individual ):
+    
+        spouse = None
+        dateDivorce = None
+    
+        idFamilySpouse = individual.findtext('FAMILY_SPOUSE')
+        
+        if ( idFamilySpouse ):
+            for family in self.GetFamilyWithID( idFamilySpouse ):
+    
+                divorce = family.find('DIVORCE')
+    
+                if ( not divorce is None ):
+                    return self.GetDate( divorce )
+    
+        return ( None, None, None )
+    
+    # ----------------------------------------------------------------------
     
     
     # ----------------------------------------------------------------------
@@ -207,9 +263,9 @@ class FamilyTreeXML( object ):
         if ( sex == 'F' ):
             return None, None, None
     
-        wife, idFamilySpouse, dateMarriage = self.GetSpouse( individual )
+        wife, idFamilySpouse, dateMarriage, dateDivorce = self.GetSpouse( individual )
     
-        return ( wife, idFamilySpouse, dateMarriage )
+        return ( wife, idFamilySpouse, dateMarriage, dateDivorce )
     # ----------------------------------------------------------------------
     
     
@@ -218,6 +274,7 @@ class FamilyTreeXML( object ):
     
         spouse = None
         dateMarriage = None
+        dateDivorce = None
     
         sex = individual.findtext('SEX')
         idFamilySpouse = individual.findtext('FAMILY_SPOUSE')
@@ -231,7 +288,7 @@ class FamilyTreeXML( object ):
                     idSpouse = family.findtext('HUSBAND')
     
                 if ( idSpouse is None ):
-                    return ( None, idFamilySpouse, dateMarriage )
+                    return ( None, idFamilySpouse, dateMarriage, dateDivorce )
     
                 flgFoundSpouse = False
                 for spouse in self.GetIndividuals():
@@ -244,9 +301,15 @@ class FamilyTreeXML( object ):
     
                     if ( marriage is not None ):
                         dateMarriage = self.GetDate( marriage )
-                        break
+
+                    divorce = family.find('DIVORCE')
+
+                    if ( divorce is not None ):
+                        dateDivorce = self.GetDate( divorce )
+
+                    break
     
-        return ( spouse, idFamilySpouse, dateMarriage )
+        return ( spouse, idFamilySpouse, dateMarriage, dateDivorce )
     
     # ----------------------------------------------------------------------
     
@@ -514,6 +577,63 @@ class FamilyTreeXML( object ):
     
             
     # ----------------------------------------------------------------------
+    def SetDay( self, element, day ):
+
+        eDate = element.find('DATE')
+
+        if ( eDate is None ):
+            eDate = ET.SubElement(element, 'DATE' )
+
+        eDay  = eDate.find('day')
+
+        if ( eDay is None ):
+            eDay = ET.SubElement(eDate, 'day' )
+
+        eDay.text = day
+        
+                
+    # ----------------------------------------------------------------------
+    def SetMonth( self, element, month ):
+
+        eDate = element.find('DATE')
+
+        if ( eDate is None ):
+            eDate = ET.SubElement(element, 'DATE' )
+
+        eMonth  = eDate.find('month')
+
+        if ( eMonth is None ):
+            eMonth = ET.SubElement(eDate, 'month' )
+
+        eMonth.text = month
+        
+                
+    # ----------------------------------------------------------------------
+    def SetYear( self, element, year ):
+
+        eDate = element.find('DATE')
+
+        if ( eDate is None ):
+            eDate = ET.SubElement(element, 'DATE' )
+
+        eYear  = eDate.find('year')
+
+        if ( eYear is None ):
+            eYear = ET.SubElement(eDate, 'year' )
+
+        eYear.text = year
+        
+    
+            
+    # ----------------------------------------------------------------------
+    def SetDate( self, element, day, month, year ):
+
+        self.SetDay(   element, day )
+        self.SetMonth( element, month )
+        self.SetYear(  element, year )
+
+
+    # ----------------------------------------------------------------------
     def SetBirthDay( self, idIndividual, day ):
 
         theIndividual = self.GetIndividual( idIndividual )
@@ -525,17 +645,7 @@ class FamilyTreeXML( object ):
             if ( eBirth is None ):
                 eBirth = ET.SubElement( theIndividual, 'BIRTH' )
 
-            eBirthDate = eBirth.find('DATE')
-
-            if ( eBirthDate is None ):
-                eBirthDate = ET.SubElement(eBirth, 'DATE' )
-
-            eBirthDay  = eBirthDate.find('day')
-
-            if ( eBirthDay is None ):
-                eBirthDay = ET.SubElement(eBirthDate, 'day' )
-
-            eBirthDay.text = day
+            self.SetDay( eBirth, day )
     
             
     # ----------------------------------------------------------------------
@@ -550,17 +660,7 @@ class FamilyTreeXML( object ):
             if ( eBirth is None ):
                 eBirth = ET.SubElement(theIndividual, 'BIRTH' )
 
-            eBirthDate = eBirth.find('DATE')
-
-            if ( eBirthDate is None ):
-                eBirthDate = ET.SubElement(eBirth, 'DATE' )
-
-            eBirthMonth  = eBirthDate.find('month')
-
-            if ( eBirthMonth is None ):
-                eBirthMonth = ET.SubElement(eBirthDate, 'month' )
-
-            eBirthMonth.text = month
+            self.SetMonth( eBirth, month )
     
             
     # ----------------------------------------------------------------------
@@ -575,17 +675,7 @@ class FamilyTreeXML( object ):
             if ( eBirth is None ):
                 eBirth = ET.SubElement(theIndividual, 'BIRTH' )
 
-            eBirthDate = eBirth.find('DATE')
-
-            if ( eBirthDate is None ):
-                eBirthDate = ET.SubElement(eBirth, 'DATE' )
-
-            eBirthYear  = eBirthDate.find('year')
-
-            if ( eBirthYear is None ):
-                eBirthYear = ET.SubElement(eBirthDate, 'year' )
-
-            eBirthYear.text = year
+            self.SetYear( eBirth, year )
     
             
     # ----------------------------------------------------------------------
@@ -600,17 +690,7 @@ class FamilyTreeXML( object ):
             if ( eDeath is None ):
                 eDeath = ET.SubElement(theIndividual, 'DEATH' )
 
-            eDeathDate = eDeath.find('DATE')
-
-            if ( eDeathDate is None ):
-                eDeathDate = ET.SubElement(eDeath, 'DATE' )
-
-            eDeathDay  = eDeathDate.find('day')
-
-            if ( eDeathDay is None ):
-                eDeathDay = ET.SubElement(eDeathDate, 'day' )
-
-            eDeathDay.text = day
+            self.SetDay( eDeath, day )
     
             
     # ----------------------------------------------------------------------
@@ -625,17 +705,7 @@ class FamilyTreeXML( object ):
             if ( eDeath is None ):
                 eDeath = ET.SubElement(theIndividual, 'DEATH' )
 
-            eDeathDate = eDeath.find('DATE')
-
-            if ( eDeathDate is None ):
-                eDeathDate = ET.SubElement(eDeath, 'DATE' )
-
-            eDeathMonth  = eDeathDate.find('month')
-
-            if ( eDeathMonth is None ):
-                eDeathMonth = ET.SubElement(eDeathDate, 'month' )
-
-            eDeathMonth.text = month
+            self.SetMonth( eDeath, month )
     
             
     # ----------------------------------------------------------------------
@@ -650,21 +720,50 @@ class FamilyTreeXML( object ):
             if ( eDeath is None ):
                 eDeath = ET.SubElement(theIndividual, 'DEATH' )
 
-            eDeathDate = eDeath.find('DATE')
-
-            if ( eDeathDate is None ):
-                eDeathDate = ET.SubElement(eDeath, 'DATE' )
-
-            eDeathYear  = eDeathDate.find('year')
-
-            if ( eDeathYear is None ):
-                eDeathYear = ET.SubElement(eDeathDate, 'year' )
-
-            eDeathYear.text = year
+            self.SetYear( eDeath, year )
     
             
     # ----------------------------------------------------------------------
-    def SetMarriedDay( self, idIndividual, day ):
+    def SetDivorcedDay( self, idIndividual, day ):
+
+        self.SetMarriedDay( idIndividual, day, True )
+
+
+    # ----------------------------------------------------------------------
+    def SetSubjectNote( self, idIndividual, note ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+
+        if ( not theIndividual is None ):
+            
+            eNote = theIndividual.find('NOTE')
+
+            if ( eNote is None ):
+                eNote = ET.SubElement( theIndividual, 'NOTE' )
+
+            eNote.text = note
+
+
+    # ----------------------------------------------------------------------
+    def SetFamilyNote( self, idIndividual, note ):
+
+        theIndividual = self.GetIndividual( idIndividual )
+
+        if ( not theIndividual is None ):
+
+            theFamily = self.GetFamily( theIndividual )
+
+            if ( not theFamily is None ):
+                eNote = theFamily.find('NOTE')
+
+                if ( eNote is None ):
+                    eNote = ET.SubElement( theFamily, 'NOTE' )
+
+                eNote.text = note
+
+
+    # ----------------------------------------------------------------------
+    def SetMarriedDay( self, idIndividual, day, flgDivorced=False ):
 
         theIndividual = self.GetIndividual( idIndividual )
 
@@ -706,26 +805,28 @@ class FamilyTreeXML( object ):
                 if ( not eSpouse is None ):
                     eSpouse.text = idIndividual
                 
-                eMarried = family.find('MARRIAGE')
+                if ( flgDivorced ):
+                    eMarried = family.find('DIVORCE')
+                else:
+                    eMarried = family.find('MARRIAGE')
 
                 if ( eMarried is None ):
-                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+                    if ( flgDivorced ):
+                        eMarried = ET.SubElement( family, 'DIVORCE' )
+                    else:
+                        eMarried = ET.SubElement( family, 'MARRIAGE' )
 
-                eMarriedDate = eMarried.find('DATE')
-
-                if ( eMarriedDate is None ):
-                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
-
-                eMarriedDay  = eMarriedDate.find('day')
-                
-                if ( eMarriedDay is None ):
-                    eMarriedDay = ET.SubElement(eMarriedDate, 'day' )
-
-                eMarriedDay.text = day
+                self.SetDay( eMarried, day )
     
             
     # ----------------------------------------------------------------------
-    def SetMarriedMonth( self, idIndividual, month ):
+    def SetDivorcedMonth( self, idIndividual, month ):
+
+        self.SetMarriedMonth( idIndividual, month, True )
+
+
+    # ----------------------------------------------------------------------
+    def SetMarriedMonth( self, idIndividual, month, flgDivorced=False ):
 
         theIndividual = self.GetIndividual( idIndividual )
 
@@ -767,26 +868,29 @@ class FamilyTreeXML( object ):
                 if ( not eSpouse is None ):
                     eSpouse.text = idIndividual
                     
-                eMarried = family.find('MARRIAGE')
+                
+                if ( flgDivorced ):
+                    eMarried = family.find('DIVORCE')
+                else:
+                    eMarried = family.find('MARRIAGE')
 
                 if ( eMarried is None ):
-                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+                    if ( flgDivorced ):
+                        eMarried = ET.SubElement( family, 'DIVORCE' )
+                    else:
+                        eMarried = ET.SubElement( family, 'MARRIAGE' )
 
-                eMarriedDate = eMarried.find('DATE')
-
-                if ( eMarriedDate is None ):
-                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
-
-                eMarriedMonth  = eMarriedDate.find('month')
-                
-                if ( eMarriedMonth is None ):
-                    eMarriedMonth = ET.SubElement(eMarriedDate, 'month' )
-
-                eMarriedMonth.text = month
+                self.SetMonth( eMarried, month )
     
             
     # ----------------------------------------------------------------------
-    def SetMarriedYear( self, idIndividual, year ):
+    def SetDivorcedYear( self, idIndividual, year ):
+
+        self.SetMarriedYear( idIndividual, year, True )
+
+
+    # ----------------------------------------------------------------------
+    def SetMarriedYear( self, idIndividual, year, flgDivorced=False ):
 
         theIndividual = self.GetIndividual( idIndividual )
 
@@ -828,22 +932,18 @@ class FamilyTreeXML( object ):
                 if ( not eSpouse is None ):
                     eSpouse.text = idIndividual
                     
-                eMarried = family.find('MARRIAGE')
+                if ( flgDivorced ):
+                    eMarried = family.find('DIVORCE')
+                else:
+                    eMarried = family.find('MARRIAGE')
 
                 if ( eMarried is None ):
-                    eMarried = ET.SubElement( family, 'MARRIAGE' )
+                    if ( flgDivorced ):
+                        eMarried = ET.SubElement( family, 'DIVORCE' )
+                    else:
+                        eMarried = ET.SubElement( family, 'MARRIAGE' )
 
-                eMarriedDate = eMarried.find('DATE')
-
-                if ( eMarriedDate is None ):
-                    eMarriedDate = ET.SubElement(eMarried, 'DATE' )
-
-                eMarriedYear  = eMarriedDate.find('year')
-                
-                if ( eMarriedYear is None ):
-                    eMarriedYear = ET.SubElement(eMarriedDate, 'year' )
-
-                eMarriedYear.text = year
+                self.SetYear( eMarried, year )
     
             
     # ----------------------------------------------------------------------
@@ -879,8 +979,6 @@ class FamilyTreeXML( object ):
                     eFamilyChild.text = idFamily
                 
                     families.append( family )
-
-                    ET.dump( family )
 
             # Neither individual or father have appropriate families so create a new one
 
@@ -1067,10 +1165,14 @@ class FamilyTreeXML( object ):
                     eWife.text = idSpouse
                     eHusband.text = idIndividual
 
-            eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
+            eFamilySpouse = theIndividual.find('FAMILY_SPOUSE')
+            if ( eFamilySpouse is None ):
+                eFamilySpouse = ET.SubElement( theIndividual, 'FAMILY_SPOUSE' )
             eFamilySpouse.text = idFamily
 
-            eFamilySpouse = ET.SubElement( theSpouse, 'FAMILY_SPOUSE' )
+            eFamilySpouse = theSpouse.find('FAMILY_SPOUSE')
+            if ( eFamilySpouse is None ):
+                eFamilySpouse = ET.SubElement( theSpouse, 'FAMILY_SPOUSE' )
             eFamilySpouse.text = idFamily
                 
 
