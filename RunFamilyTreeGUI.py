@@ -117,7 +117,7 @@ class DialogSelectSubject:
         self.top.columnconfigure(0, weight=1)
         self.top.rowconfigure(0, weight=1)
 
-        self.grid(row=0, column=0, sticky=N+S+E+W)
+        #self.top.grid(row=0, column=0, sticky=N+S+E+W)
 
         nColumns = 2
         nRows = 20
@@ -125,10 +125,10 @@ class DialogSelectSubject:
         self.CreateSubjectListbox( nRows, nColumns )
 
         okButton = Button( self.top, text="OK", command=self.OnOK )
-        okButton.grid(row=nRows+2, column=0, columnspan=nColumns+1, sticky=N+S)
+        okButton.grid( row=nRows+2, column=0, columnspan=nColumns+1, padx=5, pady=5, sticky=N+S+E+W )
 
         cancelButton = Button( self.top, text="CANCEL", command=self.OnCancel )
-        cancelButton.grid(row=nRows+3, column=0, columnspan=nColumns+1, sticky=N+S+E+W)
+        cancelButton.grid( row=nRows+3, column=0, columnspan=nColumns+1, padx=5, pady=10, sticky=N+S+E+W )
 
         self.top.transient(root)
         self.top.grab_set()
@@ -137,11 +137,11 @@ class DialogSelectSubject:
     def CreateSubjectListbox(self, nRows, nColumns):
 
         column = 0
-        row = 1
+        row = 0
 
         self.labelSubject = Label( self.top, text=self.instruction )
         self.labelSubject.grid(row=row, column=column,
-                               columnspan=nColumns, sticky=N+S)
+                               padx=5, pady=2, columnspan=nColumns, sticky=N+S)
 
         self.SubjectScrollbarY = Scrollbar(self.top, orient=VERTICAL)
         self.SubjectScrollbarY.grid(row=row+1, column=column+nColumns,
@@ -159,9 +159,9 @@ class DialogSelectSubject:
                      yscrollcommand=self.SubjectScrollbarY.set,
                      exportselection=0 )
 
-        self.SubjectListbox.grid(row=row+1, rowspan=nRows,
-                                 padx=2, pady=2, column=column, columnspan=nColumns,
-                                 sticky=N+S+E+W)
+        self.SubjectListbox.grid( row=row+1, rowspan=nRows,
+                                  padx=5, pady=2, column=column, columnspan=nColumns,
+                                  sticky=N+S+E+W )
 
         self.UpdateSubjectListboxItems( )
 
@@ -171,7 +171,10 @@ class DialogSelectSubject:
         self.SubjectListbox.bind( '<<ListboxSelect>>', self.callback )
 
         for c in range( column, column + nColumns - 1 ):
-            self.columnconfigure(c, weight=1)
+            self.top.columnconfigure(c, weight=1)
+
+        for r in range( row+1, row + nRows - 1 ):
+            self.top.rowconfigure(r, weight=1)
 
 
     def GetLabels(self):
