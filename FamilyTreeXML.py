@@ -179,6 +179,35 @@ class FamilyTreeXML( object ):
     
     
     # ----------------------------------------------------------------------
+    def ConvertDateTupleToLabel( self, date ):
+
+        label = None
+
+        if ( date is None ):
+            return None
+        
+        day, month, year = date
+
+        if ( not day is None ):
+            label = '{:2s}'.format( day )
+
+        if ( not month is None ):
+            if ( not label is None ):
+                label = label + ' {:3s}'.format( month )
+            else:
+                label = month
+
+        if ( not year is None ):
+            if ( not label is None ):
+                label = label + ' {:4s}'.format( year )
+            else:
+                label = year
+
+        return label
+    # ----------------------------------------------------------------------
+    
+    
+    # ----------------------------------------------------------------------
     def GetDate( self, element ):
     
         dateText = None
@@ -261,7 +290,7 @@ class FamilyTreeXML( object ):
         sex = individual.findtext('SEX')
     
         if ( sex == 'F' ):
-            return None, None, None
+            return None, None, None, None
     
         wife, idFamilySpouse, dateMarriage, dateDivorce = self.GetSpouse( individual )
     
