@@ -2223,7 +2223,10 @@ class Application( Frame ):
     def OnHelpAbout( self ):
 
         InfoDialog( self.master, 3, 30,
-                    "Family Tree Editor\nAuthor: Elstree Caldwell\nEmail: Elstree.Caldwell@gmail.com")
+                    'Family Tree Editor\n' + \
+                    'Copyright (C) 2015\n' + \
+                    'Author: Elstree Caldwell\n' + \
+                    'Email: Elstree.Caldwell@gmail.com' )
 
 
     # --------------------------------------------------------------------
@@ -2266,10 +2269,10 @@ class Application( Frame ):
                    'GNU GENERAL PUBLIC LICENSE\n' + \
                    'Version 2, June 1991\n' + \
                    '\n' + \
-                   ' Copyright (C) 1989, 1991 Free Software Foundation, Inc., ' + \
-                   ' 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA ' + \
-                   ' Everyone is permitted to copy and distribute verbatim copies ' + \
-                   ' of this license document, but changing it is not allowed.' )
+                   'Copyright (C) 1989, 1991 Free Software Foundation, Inc., ' + \
+                   '51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA ' + \
+                   'Everyone is permitted to copy and distribute verbatim copies ' + \
+                   'of this license document, but changing it is not allowed.' )
         
 
     # --------------------------------------------------------------------
