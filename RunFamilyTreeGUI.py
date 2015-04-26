@@ -266,7 +266,9 @@ class Application( Frame ):
 
         master.bind("<Key>", self.OnKeypress)
 
+        self.master.protocol("WM_DELETE_WINDOW", self.OnQuit)
 
+        
     # --------------------------------------------------------------------
     #  SetHeader()
     # --------------------------------------------------------------------
@@ -388,20 +390,27 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    #  destroy()
+    #  OnQuit()
     # --------------------------------------------------------------------
 
-    def destroy(self):
+    def OnQuit(self):
+
+        if ( not tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit?") ):
+            return
 
         if ( self.fileOutXML is not None ):
 
-            print 'Writing modified XML to file:', self.fileOutXML
+            print 'Saving tree data to filename:', self.fileOutXML
 
             self.SetHeader( self.fileOutXML )
-
             self.etXML.write( self.fileOutXML, pretty_print=True )
 
+        elif ( tkMessageBox.askokcancel("Save data?", "Would you like to save your data before quitting?") ):
+            self.SaveAsTreeXML()
+        
+        self.quit()
 
+             
     # --------------------------------------------------------------------
     # InitialiseMemberParameters
     # --------------------------------------------------------------------
@@ -482,7 +491,7 @@ class Application( Frame ):
 
         fileMenu.add_separator()
 
-        fileMenu.add_command(label="Quit", underline=0, command=self.quit)
+        fileMenu.add_command(label="Quit", underline=0, command=self.OnQuit)
 
         menubar.add_cascade(label="File", underline=0, menu=fileMenu)
 
@@ -2111,19 +2120,24 @@ class Application( Frame ):
 
         options = {}
 
+        today = datetime.date.today()
+
+        defaultFilename = today.strftime('FamilyTree_%Y-%m-%d.xml')
+
         options['defaultextension'] = '.xml'
         options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
-        options['initialfile'] = 'FamilyTree.xml'
+        options['initialfile'] = defaultFilename
         options['parent'] = self
         options['title'] = 'Save Family Tree Data'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print 'Saving tree data to filename:', filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving tree data to filename:', filename
 
-        self.SetHeader( filename )
+            self.SetHeader( filename )
 
-        self.etXML.write( filename, pretty_print=True )
+            self.etXML.write( filename, pretty_print=True )
 
 
     # --------------------------------------------------------------------
