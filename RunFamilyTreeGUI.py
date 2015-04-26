@@ -1,5 +1,23 @@
 #!/usr/bin/env python
 
+#   FamilyTree
+#   Copyright (C) 2015 Elstree Caldwell
+#
+#   This program is free software; you can redistribute it and/or modify
+#   it under the terms of the GNU General Public License as published by
+#   the Free Software Foundation; either version 2 of the License, or
+#   (at your option) any later version.
+#
+#   This program is distributed in the hope that it will be useful,
+#   but WITHOUT ANY WARRANTY; without even the implied warranty of
+#   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#   GNU General Public License for more details.
+#
+#   You should have received a copy of the GNU General Public License along
+#   with this program; if not, write to the Free Software Foundation, Inc.,
+#   51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
+
 import os                               # Operating system
 import time                             # Time functions
 import sys                              # System functions
@@ -21,6 +39,43 @@ import ttk
 # from ImageTk import PhotoImage
 
 import FamilyTreeGraph as FTG
+
+
+# ========================================================================
+# Info Dialog
+# ========================================================================
+
+class InfoDialog:
+
+    def __init__( self, parent, nRows, nColumns, text ):
+
+        self.top = Toplevel( parent, height=10*(nRows+2), width=10*nColumns )
+        #self.top.geometry( '{}x{}'.format( 10*(nRows + 2), 10*nColumns ) )
+
+        self.TextScrollbarY = Scrollbar(self.top, orient=VERTICAL)
+        self.TextScrollbarX = Scrollbar(self.top, orient=HORIZONTAL)
+
+        self.InfoText = Text( self.top, height=nRows, width=nColumns,
+                              xscrollcommand=self.TextScrollbarX.set,
+                              yscrollcommand=self.TextScrollbarY.set,
+                              wrap=WORD )
+        self.InfoText.pack(fill=BOTH, expand=1)
+
+        self.InfoText.insert( 1.0, text )
+        self.InfoText.config( state=DISABLED )
+
+        self.TextScrollbarY['command'] = self.InfoText.xview
+        self.TextScrollbarX['command'] = self.InfoText.yview
+
+        self.okButton = Button( self.top, text="OK", command=self.OnOK )
+        self.okButton.pack()
+
+        
+
+    def OnOK( self ):
+
+        self.top.destroy()
+
 
 
 # ========================================================================
@@ -400,6 +455,8 @@ class Application( Frame ):
 
         fileMenu.add_command( label="Open", underline=0, command=self.OpenTreeXML )
 
+        fileMenu.add_separator()
+
         fileMenu.add_command( label="Save", underline=0, command=self.SaveTreeXML )
         fileMenu.add_command( label="SaveAs", underline=0, command=self.SaveAsTreeXML )
 
@@ -410,7 +467,7 @@ class Application( Frame ):
         menubar.add_cascade(label="File", underline=0, menu=fileMenu)
 
 
-       # The Plot Menu
+        # The Plot Menu
 
         plotMenu = Menu(menubar)
 
@@ -430,6 +487,22 @@ class Application( Frame ):
                               underline=0, command=self.OnPlotDescendents )
 
         menubar.add_cascade(label="Plot", underline=0, menu=plotMenu)
+
+
+        # The Help Menu
+
+        helpMenu = Menu(menubar)
+
+        helpMenu.add_command( label="About",
+                              underline=0, command=self.OnHelpAbout )
+
+        helpMenu.add_command( label="Warranty",
+                              underline=0, command=self.OnHelpWarranty )
+
+        helpMenu.add_command( label="License",
+                              underline=0, command=self.OnHelpLicense )
+
+        menubar.add_cascade(label="Help", underline=0, menu=helpMenu)
 
 
     # --------------------------------------------------------------------
@@ -2144,6 +2217,62 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
+    # OnHelpAbout
+    # --------------------------------------------------------------------
+
+    def OnHelpAbout( self ):
+
+        InfoDialog( self.master, 3, 30,
+                    "Family Tree Editor\nAuthor: Elstree Caldwell\nEmail: Elstree.Caldwell@gmail.com")
+
+
+    # --------------------------------------------------------------------
+    # OnHelpWarranty
+    # --------------------------------------------------------------------
+
+    def OnHelpWarranty( self ):
+
+        InfoDialog( self.master, 21, 30,
+                    'NO WARRANTY\n' + \
+                    '\n' + \
+                    '  BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ' + \
+                    'FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ' + \
+                    'OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ' + \
+                    'PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED ' + \
+                    'OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF ' + \
+                    'MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS ' + \
+                    'TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE ' + \
+                    'PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, ' + \
+                    'REPAIR OR CORRECTION.\n' + \
+                    '\n' + \
+                    '  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING ' + \
+                    'WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR ' + \
+                    'REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, ' + \
+                    'INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING ' + \
+                    'OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED ' + \
+                    'TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY ' + \
+                    'YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER ' + \
+                    'PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE ' + \
+                    'POSSIBILITY OF SUCH DAMAGES.' )
+
+
+    # --------------------------------------------------------------------
+    # OnHelpLicense
+    # --------------------------------------------------------------------
+
+    def OnHelpLicense( self ):
+
+        InfoDialog(self.master, 7, 30,
+                   'GNU GENERAL PUBLIC LICENSE\n' + \
+                   'Version 2, June 1991\n' + \
+                   '\n' + \
+                   ' Copyright (C) 1989, 1991 Free Software Foundation, Inc., ' + \
+                   ' 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA ' + \
+                   ' Everyone is permitted to copy and distribute verbatim copies ' + \
+                   ' of this license document, but changing it is not allowed.' )
+        
+
+    # --------------------------------------------------------------------
     # OnKeypress
     # --------------------------------------------------------------------
 
@@ -2159,6 +2288,11 @@ class Application( Frame ):
 # ========================================================================
 # Main()
 # ========================================================================
+
+print '\nFamilyTree, Copyright (C) 2015 Elstree Caldwell\n\n' \
+      'FamilyTree comes with ABSOLUTELY NO WARRANTY; for details see menu item Help->Warranty.\n' \
+      'This is free software, and you are welcome to redistribute it\n' \
+      'under certain conditions; see menu item Help->License for details.\n\n'
 
 
 # Parse the command line
