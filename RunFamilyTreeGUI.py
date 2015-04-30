@@ -407,7 +407,10 @@ class Application( Frame ):
 
         elif ( tkMessageBox.askokcancel("Save data?", "Would you like to save your data before quitting?") ):
             self.SaveAsTreeXML()
-        
+
+        elif ( not tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit without saving your data?") ):
+            return
+
         self.quit()
 
              
@@ -1130,6 +1133,7 @@ class Application( Frame ):
 
         self.ftGraph.SetSex( self.idSelectedFather, 'M' )
         self.ftGraph.SetFather( self.idIndividual, self.idSelectedFather )
+
         self.UpdateSelectedSubject()
 
 
@@ -1205,6 +1209,7 @@ class Application( Frame ):
 
         self.ftGraph.SetSex( self.idSelectedMother, 'F' )
         self.ftGraph.SetMother( self.idIndividual, self.idSelectedMother )
+
         self.UpdateSelectedSubject()
 
 
@@ -1386,6 +1391,7 @@ class Application( Frame ):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         sex = theIndividual.findtext('SEX')
+        surname = None
 
         if ( ( not ( sex == 'M' ) ) and ( not ( sex == 'F' ) ) ):
 
@@ -1415,6 +1421,14 @@ class Application( Frame ):
 
             self.idSelectedChild = self.GetNewIndividual()
 
+            if ( sex == 'M' ):
+                surname = theIndividual.findtext('NAME/surname')
+            else:
+                spouse, idFamilySpouse, dateMarriage, dateDivorced = self.ftGraph.GetSpouse( theIndividual )
+
+                if ( spouse is not None ):
+                    surname = spouse.findtext('NAME/surname')
+    
         else:
 
             self.idSelectedChild = re.search( 'I\d\d\d$', self.idSelectedChild ).group( 0 )
@@ -1422,6 +1436,10 @@ class Application( Frame ):
         # Set the child
 
         self.ftGraph.SetChild( self.idIndividual, self.idSelectedChild )
+
+        if ( ( not surname is None ) and ( len( surname ) > 0 ) ):
+            self.ftGraph.SetLastName( self.idSelectedChild, surname )
+
         self.UpdateSelectedSubject()
 
 
