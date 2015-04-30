@@ -88,11 +88,11 @@ class FamilyTreeGraph( FamilyTreeXML ):
             marriageDate = self.ConvertDateTupleToLabel( self.GetDateMarried( individual ) )
         
             label = name
-            if ( birthDate is not None ):
+            if ( ( birthDate is not None ) and ( len( birthDate ) > 0 ) ):
                 label = label + '\nb. {:s}'.format( birthDate )
-            if ( marriageDate is not None ):
+            if ( ( marriageDate is not None ) and ( len( marriageDate ) > 0 ) ):
                 label = label + '\nm. {:s}'.format( marriageDate )
-            if ( deathDate is not None ):
+            if ( ( deathDate is not None ) and ( len( deathDate ) > 0 ) ):
                 label = label + '\nd. {:s}'.format( deathDate )
         
             #print idIndi, "Sex: {:s} '{:s}'".format( sex, label ), '\n'
