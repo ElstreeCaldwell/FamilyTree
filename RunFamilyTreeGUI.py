@@ -255,6 +255,9 @@ class Application( Frame ):
         self.master.columnconfigure(0, weight=1)
         self.master.rowconfigure(0, weight=1)
 
+        if ( not self.fileInXML is None ):
+            self.master.title( self.fileInXML )
+
         self.grid(row=0, column=0, sticky=N+S+E+W)
 
         self.InitialiseMemberParameters()
@@ -405,11 +408,17 @@ class Application( Frame ):
             self.SetHeader( self.fileOutXML )
             self.etXML.write( self.fileOutXML, pretty_print=True )
 
-        elif ( tkMessageBox.askokcancel("Save data?", "Would you like to save your data before quitting?") ):
-            self.SaveAsTreeXML()
+        else:
 
-        elif ( not tkMessageBox.askokcancel("Quit?", "Are you sure you want to quit without saving your data?") ):
-            return
+            flgSaved = False
+
+            if ( tkMessageBox.askokcancel("Save data?", "Would you like to save your data before quitting?") ):
+               flgSaved = self.SaveAsTreeXML()
+
+            if ( ( not flgSaved ) and
+                 ( not tkMessageBox.askokcancel("Quit?",
+                                                "Are you sure you want to quit without saving your data?") ) ):
+                 return
 
         self.quit()
 
@@ -2156,6 +2165,14 @@ class Application( Frame ):
             self.SetHeader( filename )
 
             self.etXML.write( filename, pretty_print=True )
+
+            self.fileOutXML = filename
+            
+            self.master.title( self.fileOutXML )
+
+            return True
+
+        return False
 
 
     # --------------------------------------------------------------------
