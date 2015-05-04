@@ -40,190 +40,10 @@ import ttk
 
 import FamilyTreeGraph as FTG
 
+import Dialogs
+import FamilyTab
 
-# ========================================================================
-# Info Dialog
-# ========================================================================
-
-class InfoDialog:
-
-    def __init__( self, parent, nRows, nColumns, text ):
-
-        self.top = Toplevel( parent, height=10*(nRows+2), width=10*nColumns )
-        #self.top.geometry( '{}x{}'.format( 10*(nRows + 2), 10*nColumns ) )
-
-        self.TextScrollbarY = Scrollbar(self.top, orient=VERTICAL)
-        self.TextScrollbarX = Scrollbar(self.top, orient=HORIZONTAL)
-
-        self.InfoText = Text( self.top, height=nRows, width=nColumns,
-                              xscrollcommand=self.TextScrollbarX.set,
-                              yscrollcommand=self.TextScrollbarY.set,
-                              wrap=WORD )
-        self.InfoText.pack(fill=BOTH, expand=1)
-
-        self.InfoText.insert( 1.0, text )
-        self.InfoText.config( state=DISABLED )
-
-        self.TextScrollbarY['command'] = self.InfoText.xview
-        self.TextScrollbarX['command'] = self.InfoText.yview
-
-        self.okButton = Button( self.top, text="OK", command=self.OnOK )
-        self.okButton.pack()
-
-        
-
-    def OnOK( self ):
-
-        self.top.destroy()
-
-
-
-# ========================================================================
-# Dialog to select a subject
-# ========================================================================
-
-class DialogSelectSubject:
-
-    def __init__( self, parent, ftGraph, instruction,
-                  fnCallbackSelection, fnCallbackClear,
-                  prependExtraLabels=None,
-                  sexCriterion=None, idExclusionList=None,
-                  subjects=None ):
-
-        self.ftGraph = ftGraph
-        self.instruction = instruction
-
-        self.callback = fnCallbackSelection
-        self.callbackClear = fnCallbackClear
-
-        self.prependExtraLabels = prependExtraLabels
-        self.sexCriterion = sexCriterion
-        self.idExclusionList = idExclusionList
-        self.subjects = subjects
-
-        # Do we have any individuals to display?
-
-        self.labels = self.GetLabels( )
-
-        if ( len( self.labels ) == 0 ):
-            fnCallbackSelection( None )
-            return
-
-        # Yes...
-
-        self.top = Toplevel(parent)
-        #self.top.geometry( '{}x{}'.format( 300, 900 ) )
-
-        self.top.columnconfigure(0, weight=1)
-        self.top.rowconfigure(0, weight=1)
-
-        #self.top.grid(row=0, column=0, sticky=N+S+E+W)
-
-        nColumns = 2
-        nRows = 20
-
-        self.CreateSubjectListbox( nRows, nColumns )
-
-        okButton = Button( self.top, text="OK", command=self.OnOK )
-        okButton.grid( row=nRows+2, column=0, columnspan=nColumns+1, padx=5, pady=5, sticky=N+S+E+W )
-
-        cancelButton = Button( self.top, text="CANCEL", command=self.OnCancel )
-        cancelButton.grid( row=nRows+3, column=0, columnspan=nColumns+1, padx=5, pady=10, sticky=N+S+E+W )
-
-        self.top.transient(root)
-        self.top.grab_set()
-        parent.wait_window( self.top )
-
-    def CreateSubjectListbox(self, nRows, nColumns):
-
-        column = 0
-        row = 0
-
-        self.labelSubject = Label( self.top, text=self.instruction )
-        self.labelSubject.grid(row=row, column=column,
-                               padx=5, pady=2, columnspan=nColumns, sticky=N+S)
-
-        self.SubjectScrollbarY = Scrollbar(self.top, orient=VERTICAL)
-        self.SubjectScrollbarY.grid(row=row+1, column=column+nColumns,
-                                    padx=2, pady=2, rowspan=nRows,
-                                    sticky=N+S)
-
-        self.SubjectScrollbarX = Scrollbar(self.top, orient=HORIZONTAL)
-        self.SubjectScrollbarX.grid(row=row+nRows+1, column=column,
-                                    padx=2, pady=2, columnspan=nColumns,
-                                    sticky=E+W)
-
-        self.SubjectListbox = \
-            Listbox( self.top, selectmode=SINGLE,
-                     xscrollcommand=self.SubjectScrollbarX.set,
-                     yscrollcommand=self.SubjectScrollbarY.set,
-                     exportselection=0 )
-
-        self.SubjectListbox.grid( row=row+1, rowspan=nRows,
-                                  padx=5, pady=2, column=column, columnspan=nColumns,
-                                  sticky=N+S+E+W )
-
-        self.UpdateSubjectListboxItems( )
-
-        self.SubjectScrollbarX['command'] = self.SubjectListbox.xview
-        self.SubjectScrollbarY['command'] = self.SubjectListbox.yview
-
-        self.SubjectListbox.bind( '<<ListboxSelect>>', self.callback )
-
-        for c in range( column, column + nColumns - 1 ):
-            self.top.columnconfigure(c, weight=1)
-
-        for r in range( row+1, row + nRows - 1 ):
-            self.top.rowconfigure(r, weight=1)
-
-
-    def GetLabels(self):
-
-        labels = []
-
-        if ( self.subjects is None ):
-            self.subjects = self.ftGraph.GetIndividuals()
-
-        for individual in self.subjects:
-
-            idIndi = individual.attrib['id']
-
-            if (  ( ( self.sexCriterion is None ) or
-                    ( individual.findtext('SEX') is None ) or
-                    ( len( individual.findtext('SEX') ) == 0 ) or
-                    ( individual.findtext('SEX') == self.sexCriterion ) ) and
-                  ( ( self.idExclusionList is None ) or
-                    ( not idIndi in self.idExclusionList ) ) ):
-
-                label = self.ftGraph.GetLabel( individual )
-
-                labels.append( label )
-
-        return labels
-
-
-    def UpdateSubjectListboxItems(self):
-
-        self.SubjectListbox.delete( 0, END )
-
-        if ( not self.prependExtraLabels is None ):
-            labels = self.prependExtraLabels + sorted( self.labels )
-        else:
-            labels = sorted( self.labels )
-
-        for label in labels:
-            self.SubjectListbox.insert( END, label )
-
-
-    def OnOK( self ):
-
-        self.top.destroy()
-
-    def OnCancel( self ):
-
-        self.callbackClear()
-        self.top.destroy()
-
+import pdb
 
 
 # ========================================================================
@@ -259,6 +79,11 @@ class Application( Frame ):
             self.master.title( self.fileInXML )
 
         self.grid(row=0, column=0, sticky=N+S+E+W)
+
+        self.days = [ '' ] + [str(x) for x in range( 1, 31 )]
+
+        self.months = [ '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                        'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
 
         self.InitialiseMemberParameters()
 
@@ -430,6 +255,7 @@ class Application( Frame ):
     def InitialiseMemberParameters(self):
 
         self.idIndividual = None
+        self.idSelectedFamilySpouse = None
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
@@ -445,7 +271,6 @@ class Application( Frame ):
         self.varSelectedSearch = StringVar()
 
         self.varSelectedID = StringVar()
-        self.varSelectedFamilySpouseID = StringVar()
         self.varSelectedFamilyChildID = StringVar()
 
         self.varSelectedLastName = StringVar()
@@ -465,17 +290,6 @@ class Application( Frame ):
         self.varSelectedDeathPlace = StringVar()
 
         self.varSelectedBurialPlace = StringVar()
-
-        self.varSelectedMarriedDay   = StringVar()
-        self.varSelectedMarriedMonth = StringVar()
-        self.varSelectedMarriedYear  = StringVar()
-        self.varSelectedMarriedPlace = StringVar()
-
-        self.varSelectedDivorcedDay   = StringVar()
-        self.varSelectedDivorcedMonth = StringVar()
-        self.varSelectedDivorcedYear  = StringVar()
-
-        self.varSelectedSpouse = StringVar()
 
         self.InitialiseSelectedSubject()
 
@@ -552,14 +366,15 @@ class Application( Frame ):
 
     def CreateWidgets(self):
 
-        months = [ '', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+        iRow = 0
+        iCol = 0
 
-        days = [ '' ] + [str(x) for x in range( 1, 31 )]
+        nColumns = 2
+        nRows = 22
 
-        self.CreateSubjectListbox( 0, 0)
+        self.CreateSubjectListbox( nColumns, nRows, iRow, iCol )
 
-        iRow = 22
+        iRow = iRow + nRows + 2
         iCol = 0
 
         # SearchSubjects
@@ -581,36 +396,18 @@ class Application( Frame ):
 
         # Subject
         self.labelID = Label(self, text='Subject')
-        self.labelID.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S)
-
-        iRow = iRow + 1
-
-        # ID
-        self.labelID = Label(self, text='ID:', anchor=W, justify=LEFT)
-        self.labelID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+        self.labelID.grid(row=iRow, column=iCol+1, columnspan=1, sticky=N+S)
 
         self.labelSelectedID = \
             Label(self, textvariable=self.varSelectedID, anchor=W, justify=LEFT)
 
-        self.labelSelectedID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
+        self.labelSelectedID.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1,
                                    sticky=N+S+E+W )
 
         iRow = iRow + 1
 
-        # FamilySpouse
-        self.labelFamilySpouseID = Label(self, text='Spouse Family:', anchor=W, justify=LEFT)
-        self.labelFamilySpouseID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.labelSelectedFamilySpouseID = \
-            Label(self, textvariable=self.varSelectedFamilySpouseID, anchor=W, justify=LEFT)
-
-        self.labelSelectedFamilySpouseID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
-                                   sticky=N+S+E+W )
-
-        iRow = iRow + 1
-
-       # FamilyChild
-        self.labelFamilyChildID = Label(self, text='Child Family:', anchor=W, justify=LEFT)
+        # FamilyChild
+        self.labelFamilyChildID = Label(self, text='Child of Family:', anchor=W, justify=LEFT)
         self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.labelSelectedFamilyChildID = \
@@ -618,6 +415,19 @@ class Application( Frame ):
 
         self.labelSelectedFamilyChildID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
                                    sticky=N+S+E+W )
+
+        iRow = iRow + 1
+
+        # Sex
+        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)
+        self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
+                                             ' ', 'M', 'F' )
+        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect )
+
+        self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
 
         iRow = iRow + 1
 
@@ -660,16 +470,9 @@ class Application( Frame ):
 
         iRow = iRow + 1
 
-        # Sex
-        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)
-        self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
-                                             ' ', 'M', 'F' )
-        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect )
-
-        self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
+        # Empty
+        self.labelEmpty1 = Label( self )
+        self.labelEmpty1.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
 
@@ -677,13 +480,13 @@ class Application( Frame ):
         self.labelBirth = Label(self, text='Born:', anchor=W, justify=LEFT)
         self.labelBirth.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.optionSelectedBirthDay = OptionMenu( self, self.varSelectedBirthDay, *days )
+        self.optionSelectedBirthDay = OptionMenu( self, self.varSelectedBirthDay, *self.days )
         self.optionSelectedBirthDay.bind( '<<ListboxSelect>>', self.OnBirthDayOptionSelect )
 
         self.optionSelectedBirthDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedBirthDay.trace( "w", self.OnBirthDayOptionSelect )
 
-        self.optionSelectedBirthMonth = OptionMenu( self, self.varSelectedBirthMonth, *months )
+        self.optionSelectedBirthMonth = OptionMenu( self, self.varSelectedBirthMonth, *self.months )
         self.optionSelectedBirthMonth.bind( '<<ListboxSelect>>', self.OnBirthMonthOptionSelect )
 
         self.optionSelectedBirthMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
@@ -708,19 +511,19 @@ class Application( Frame ):
                                           column=iCol+2, columnspan=3, sticky=N+S+E+W )
         self.varSelectedBirthPlace.trace( "w", self.OnBirthPlaceEdited )
 
-        iRow = iRow + 1
+        iRow = iRow + 2
 
         # Death Date
         self.labelDeath = Label(self, text='Died:', anchor=W, justify=LEFT)
         self.labelDeath.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.optionSelectedDeathDay = OptionMenu( self, self.varSelectedDeathDay, *days )
+        self.optionSelectedDeathDay = OptionMenu( self, self.varSelectedDeathDay, *self.days )
         self.optionSelectedDeathDay.bind( '<<ListboxSelect>>', self.OnDeathDayOptionSelect )
 
         self.optionSelectedDeathDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDeathDay.trace( "w", self.OnDeathDayOptionSelect )
 
-        self.optionSelectedDeathMonth = OptionMenu( self, self.varSelectedDeathMonth, *months )
+        self.optionSelectedDeathMonth = OptionMenu( self, self.varSelectedDeathMonth, *self.months )
         self.optionSelectedDeathMonth.bind( '<<ListboxSelect>>', self.OnDeathMonthOptionSelect )
 
         self.optionSelectedDeathMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
@@ -754,66 +557,17 @@ class Application( Frame ):
             Entry(self, textvariable=self.varSelectedBurialPlace)
 
         self.entrySelectedBurialPlace.grid( row=iRow, rowspan=1,
-                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
+                                          column=iCol+2, columnspan=4, sticky=N+S+E+W )
         self.varSelectedBurialPlace.trace( "w", self.OnBurialPlaceEdited )
 
         iRow = iRow + 1
 
-        # Subject Note
-
-        nColumns = 3
-        nRows = 5
-        self.labelSubjectNote = Label(self, text='Subject Notes:', anchor=NW, justify=LEFT)
-        self.labelSubjectNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.SubjectNoteScrollbarY = Scrollbar(self, orient=VERTICAL)
-        self.SubjectNoteScrollbarY.grid(row=iRow, column=iCol+nColumns+1,
-                                    padx=2, pady=2, rowspan=nRows,
-                                    sticky=N+S)
-        self.SubjectNoteScrollbarY.rowconfigure(iRow+1, weight=1)
-
-        self.SubjectNoteScrollbarX = Scrollbar(self, orient=HORIZONTAL)
-        self.SubjectNoteScrollbarX.grid(row=iRow+nRows, column=iCol+1,
-                                        padx=2, pady=2, columnspan=nColumns,
-                                        sticky=E+W)
-
-        self.textSubjectNote = Text( self, height=nRows, width=nColumns,
-                                     xscrollcommand=self.SubjectNoteScrollbarX.set,
-                                     yscrollcommand=self.SubjectNoteScrollbarY.set,
-                                     wrap=WORD )
-        self.textSubjectNote.grid( row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W )
-
-
-
-        iRow = 22
-
-        # New subject
-        self.buttonNewSubject = Button(self)
-        self.buttonNewSubject['text'] = 'New Subject'
-        self.buttonNewSubject['command'] = self.OnNewSubject
-
-        self.buttonNewSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
+        # Empty
+        self.labelEmpty2 = Label( self )
+        self.labelEmpty2.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
-
-        # Delete subject
-        self.buttonDeleteSubject = Button(self)
-        self.buttonDeleteSubject['text'] = 'Delete Subject'
-        self.buttonDeleteSubject['command'] = self.OnDeleteSubject
-
-        self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
-
-
-
-        iRow = 0
-        iCol = iCol + 5
-
-        # Parents
-        self.labelID = Label(self, text='Parents')
-        self.labelID.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S)
-
-        iRow = iRow + 1
-
+ 
         # Father
         self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)
         self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
@@ -843,144 +597,84 @@ class Application( Frame ):
 
         self.buttonRemoveParents.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
-
-        iRow = iRow + 2
-
-        # Spouse
-        self.labelID = Label(self, text='Spouse')
-        self.labelID.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S)
-
         iRow = iRow + 1
 
-        # Add Spouse
-        self.buttonAddSpouse = Button(self)
-        self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
-
-        self.UpdateSpouseButtonAdd()
+        # Empty
+        self.labelEmpty3 = Label( self )
+        self.labelEmpty3.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
+ 
+        # Subject Notes
 
-        # Married Date
-        self.labelMarried = Label(self, text='Married:', anchor=W, justify=LEFT)
-        self.labelMarried.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+        nColumns = 8
+        nRows = 4
+        self.labelSubjectNote = Label(self, text='Subject Notes:', anchor=NW, justify=LEFT)
+        self.labelSubjectNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.optionSelectedMarriedDay = OptionMenu( self, self.varSelectedMarriedDay, *days )
-        self.optionSelectedMarriedDay.bind( '<<ListboxSelect>>', self.OnMarriedDayOptionSelect )
-
-        self.optionSelectedMarriedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedMarriedDay.trace( "w", self.OnMarriedDayOptionSelect )
-
-        self.optionSelectedMarriedMonth = OptionMenu( self, self.varSelectedMarriedMonth, *months )
-        self.optionSelectedMarriedMonth.bind( '<<ListboxSelect>>', self.OnMarriedMonthOptionSelect )
-
-        self.optionSelectedMarriedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedMarriedMonth.trace( "w", self.OnMarriedMonthOptionSelect )
-
-        self.entrySelectedMarriedYear = \
-            Entry(self, textvariable=self.varSelectedMarriedYear, width=4)
-
-        self.entrySelectedMarriedYear.grid( row=iRow, rowspan=1,
-                                          column=iCol+3, columnspan=2, sticky=N+S+E+W )
-        self.varSelectedMarriedYear.trace( "w", self.OnMarriedYearEdited )
-
-        iRow = iRow + 1
-
-        self.labelMarriedPlace = Label(self, text='Location:', anchor=W, justify=RIGHT)
-        self.labelMarriedPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
-
-        self.entrySelectedMarriedPlace = \
-            Entry(self, textvariable=self.varSelectedMarriedPlace)
-
-        self.entrySelectedMarriedPlace.grid( row=iRow, rowspan=1,
-                                          column=iCol+2, columnspan=3, sticky=N+S+E+W )
-        self.varSelectedMarriedPlace.trace( "w", self.OnMarriedPlaceEdited )
-
-        iRow = iRow + 1
-
-        # Divorced Date
-        self.labelDivorced = Label(self, text='Divorced:', anchor=W, justify=LEFT)
-        self.labelDivorced.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.optionSelectedDivorcedDay = OptionMenu( self, self.varSelectedDivorcedDay, *days )
-        self.optionSelectedDivorcedDay.bind( '<<ListboxSelect>>', self.OnDivorcedDayOptionSelect )
-
-        self.optionSelectedDivorcedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedDivorcedDay.trace( "w", self.OnDivorcedDayOptionSelect )
-
-        self.optionSelectedDivorcedMonth = OptionMenu( self, self.varSelectedDivorcedMonth, *months )
-        self.optionSelectedDivorcedMonth.bind( '<<ListboxSelect>>', self.OnDivorcedMonthOptionSelect )
-
-        self.optionSelectedDivorcedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedDivorcedMonth.trace( "w", self.OnDivorcedMonthOptionSelect )
-
-        self.entrySelectedDivorcedYear = \
-            Entry(self, textvariable=self.varSelectedDivorcedYear, width=4)
-
-        self.entrySelectedDivorcedYear.grid( row=iRow, rowspan=1,
-                                             column=iCol+3, columnspan=2, sticky=N+S+E+W )
-        self.varSelectedDivorcedYear.trace( "w", self.OnDivorcedYearEdited )
-
-        iRow = iRow + 1
-
-        # Remove Spouse
-        self.buttonRemoveSpouse = Button(self)
-        self.buttonRemoveSpouse['text'] = 'Remove Spouse'
-        self.buttonRemoveSpouse['command'] =  self.OnRemoveSpouse
-
-        self.buttonRemoveSpouse.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
-
-        iRow = iRow + 3
-
-        # Family Note
-
-        nColumns = 3
-        nRows = 5
-        self.labelFamilyNote = Label(self, text='Family Notes:', anchor=NW, justify=LEFT)
-        self.labelFamilyNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.FamilyNoteScrollbarY = Scrollbar(self, orient=VERTICAL)
-        self.FamilyNoteScrollbarY.grid(row=iRow, column=iCol+nColumns+1,
+        self.SubjectNoteScrollbarY = Scrollbar( self, orient=VERTICAL )
+        self.SubjectNoteScrollbarY.grid( row=iRow, column=iCol+nColumns+1,
                                     padx=2, pady=2, rowspan=nRows,
-                                    sticky=N+S)
-        self.FamilyNoteScrollbarY.rowconfigure(iRow+1, weight=1)
+                                    sticky=N+S )
+        self.SubjectNoteScrollbarY.rowconfigure( iRow+1, weight=1 )
 
-        self.FamilyNoteScrollbarX = Scrollbar(self, orient=HORIZONTAL)
-        self.FamilyNoteScrollbarX.grid(row=iRow+nRows, column=iCol+1,
-                                        padx=2, pady=2, columnspan=nColumns,
-                                        sticky=E+W)
+        self.SubjectNoteScrollbarX = Scrollbar(self, orient=HORIZONTAL)
+        self.SubjectNoteScrollbarX.grid( row=iRow+nRows, column=iCol+1,
+                                         padx=2, pady=2, columnspan=nColumns,
+                                         sticky=E+W )
 
-        self.textFamilyNote = Text( self, height=nRows, width=nColumns,
-                                    xscrollcommand=self.FamilyNoteScrollbarX.set,
-                                    yscrollcommand=self.FamilyNoteScrollbarY.set,
-                                    wrap=WORD )
-        self.textFamilyNote.grid( row=iRow, column=iCol+1, columnspan=3, sticky=N+S+E+W )
+        self.textSubjectNote = Text( self, height=nRows, width=nColumns,
+                                     xscrollcommand=self.SubjectNoteScrollbarX.set,
+                                     yscrollcommand=self.SubjectNoteScrollbarY.set,
+                                     wrap=WORD )
+        self.textSubjectNote.grid( row=iRow, rowspan=nRows, column=iCol+1,
+                                   columnspan=nColumns, sticky=N+S+E+W )
 
 
-        iRow = 0
-        iCol = iCol + 5
 
-        # Children
-        self.CreateChildrenListbox( iCol, iRow )
+        iRow = iRow + nRows + 2
 
-        iRow = 22
+        # New subject
+        self.buttonNewSubject = Button(self)
+        self.buttonNewSubject['text'] = 'New Subject'
+        self.buttonNewSubject['command'] = self.OnNewSubject
 
-        # Add child
-        self.buttonAddChild = Button(self)
-        self.buttonAddChild['text'] = 'Add Child'
-        self.buttonAddChild['command'] = self.OnAddChild
-
-        self.buttonAddChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+        self.buttonNewSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
         iRow = iRow + 1
 
-        # Remove child
-        self.buttonRemoveChild = Button(self)
-        self.buttonRemoveChild['text'] = 'Remove Child'
-        self.buttonRemoveChild['command'] = self.OnRemoveChild
+        # Delete subject
+        self.buttonDeleteSubject = Button(self)
+        self.buttonDeleteSubject['text'] = 'Delete Subject'
+        self.buttonDeleteSubject['command'] = self.OnDeleteSubject
 
-        self.buttonRemoveChild.grid(row=iRow, column=iCol, columnspan=2, sticky=N+S+E+W)
+        self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
+        # New Family
+        self.buttonNewFamily = Button(self)
+        self.buttonNewFamily['text'] = 'New Family'
+        self.buttonNewFamily['command'] = self.OnNewFamily
+
+        self.buttonNewFamily.grid(row=iRow, column=iCol+1, rowspan=1, columnspan=4, sticky=N+S+E+W)
 
 
+        # The Family tabs
+
+        self.familyColumn = iCol
+        
+        self.notebookFamilies = ttk.Notebook( self.master, name='families' )
+        self.notebookFamilies.grid(row=0, column=iCol, sticky=N+S)
+
+        self.notebookTabChangedFnID = self.notebookFamilies.bind_all( "<<NotebookTabChanged>>",
+                                                                      self.OnFamilyChanged )
+        
+        self.style = ttk.Style()
+        self.style.configure('.', foreground='black', background='white')
+
+
+        
         #for column in range( iCol + 1 ):
         #    self.columnconfigure(column, weight=1)
 
@@ -992,10 +686,7 @@ class Application( Frame ):
     # CreateSubjectListbox
     # --------------------------------------------------------------------
 
-    def CreateSubjectListbox(self, column, row):
-
-        nColumns = 2
-        nRows = 20
+    def CreateSubjectListbox(self, nColumns, nRows, row, column):
 
         self.labelSubject = Label(self, text='Subjects')
         self.labelSubject.grid(row=row, column=column,
@@ -1037,54 +728,6 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    # CreateChildrenListbox
-    # --------------------------------------------------------------------
-
-    def CreateChildrenListbox(self, column, row):
-
-        nColumns = 2
-        nRows = 20
-
-        self.labelChildren = Label(self, text='Children')
-        self.labelChildren.grid(row=row, column=column,
-                               columnspan=nColumns, sticky=N+S)
-
-        self.ChildrenScrollbarY = Scrollbar(self, orient=VERTICAL)
-        self.ChildrenScrollbarY.grid(row=row+1, column=column+nColumns,
-                                     padx=2, pady=2, rowspan=nRows,
-                                     sticky=N+S)
-        self.ChildrenScrollbarY.rowconfigure(row+1, weight=1)
-
-        self.ChildrenScrollbarX = Scrollbar(self, orient=HORIZONTAL)
-        self.ChildrenScrollbarX.grid(row=row+nRows+1, column=column,
-                                     padx=2, pady=2, columnspan=nColumns,
-                                     sticky=E+W)
-
-        self.ChildrenListbox = \
-            Listbox( self, selectmode=SINGLE,
-                     xscrollcommand=self.ChildrenScrollbarX.set,
-                     yscrollcommand=self.ChildrenScrollbarY.set,
-                     exportselection=0 )
-
-        self.UpdateChildrenListboxItems()
-
-        self.ChildrenListbox.grid(row=row+1, rowspan=nRows,
-                                  padx=2, pady=2, column=column, columnspan=nColumns,
-                                  sticky=N+S+E+W)
-        self.ChildrenListbox.columnconfigure(column, weight=1)
-        self.ChildrenListbox.rowconfigure(row+1, weight=1)
-
-        self.ChildrenScrollbarX['command'] = self.ChildrenListbox.xview
-        self.ChildrenScrollbarY['command'] = self.ChildrenListbox.yview
-
-        self.ChildrenListbox.bind( '<<ListboxSelect>>',
-                                 self.OnSubjectListboxSelect )
-
-        for c in range( column, column + nColumns - 1 ):
-            self.columnconfigure(c, weight=1)
-
-
-    # --------------------------------------------------------------------
     # ChangeSubject
     # --------------------------------------------------------------------
 
@@ -1094,7 +737,8 @@ class Application( Frame ):
         self.CopyFamilyNoteTextToXML()
 
         self.idIndividual = idIndividual
-
+        self.idSelectedFamilySpouse = None
+        
         self.UpdateSelectedSubject()
         
 
@@ -1119,10 +763,10 @@ class Application( Frame ):
     def OnAddFather(self):
 
         self.idSelectedFather = None
-        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a father',
-                                 self.OnSelectedFather, self.OnSelectedFatherCancel,
-                                 [ '***  New Individual ***' ],
-                                 'M', [ self.idIndividual ] )
+        d = Dialogs.DialogSelectSubject( self.master, self.ftGraph, 'Select a father',
+                                         self.OnSelectedFather, self.OnSelectedFatherCancel,
+                                         [ '***  New Individual ***' ],
+                                         'M', [ self.idIndividual ] )
 
         # Create a new father?
 
@@ -1144,7 +788,6 @@ class Application( Frame ):
         self.ftGraph.SetFather( self.idIndividual, self.idSelectedFather )
 
         self.UpdateSelectedSubject()
-
 
 
     # --------------------------------------------------------------------
@@ -1195,7 +838,7 @@ class Application( Frame ):
     def OnAddMother(self):
 
         self.idSelectedMother = None
-        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a mother',
+        d = Dialogs.DialogSelectSubject( self.master, self.ftGraph, 'Select a mother',
                                  self.OnSelectedMother, self.OnSelectedMotherCancel,
                                  [ '***  New Individual ***' ],
                                  'F', [ self.idIndividual ] )
@@ -1263,115 +906,6 @@ class Application( Frame ):
         if ( mother is not None ):
             self.ChangeSubject( self.ftGraph.GetIndividualID( mother ) )
 
-
-    # --------------------------------------------------------------------
-    # OnAddSpouse
-    # --------------------------------------------------------------------
-
-    def OnAddSpouse(self):
-
-        idsExcluded = [ self.idIndividual ]
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
-
-        if ( not father is None ):
-            idsExcluded.append( self.ftGraph.GetIndividualID( father ) )
-
-        if ( not mother is None ):
-            idsExcluded.append( self.ftGraph.GetIndividualID( mother ) )
-
-        sex = theIndividual.findtext('SEX')
-
-        self.idSelectedSpouse = None
-
-        if ( sex == 'M' ):
-
-            d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
-                                     self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
-                                     [ '***  New Individual ***' ],
-                                     'F', idsExcluded )
-        elif ( sex == 'F' ):
-
-            d = DialogSelectSubject( self.master, self.ftGraph, 'Select a spouse',
-                                     self.OnSelectedSpouse, self.OnSelectedSpouseCancel,
-                                     [ '***  New Individual ***' ],
-                                     'M', idsExcluded )
-        else:
-
-            tkMessageBox.showwarning( 'Warning',
-                                      'Please set the gender of this subject before adding a spouse.' )
-            return
-
-        # Create a new spouse?
-
-        if ( self.idSelectedSpouse is None ):
-
-            return
-
-        elif ( self.idSelectedSpouse == '***  New Individual ***' ):
-
-            self.idSelectedSpouse = self.GetNewIndividual()
-
-        else:
-
-            self.idSelectedSpouse = re.search( 'I\d\d\d$', self.idSelectedSpouse ).group( 0 )
-
-        # Set the spouse
-
-        if ( sex == 'M' ):
-            self.ftGraph.SetSex( self.idSelectedSpouse, 'F' )
-        elif ( sex == 'F' ):
-            self.ftGraph.SetSex( self.idSelectedSpouse, 'M' )
-
-        self.ftGraph.SetSpouse( self.idIndividual, self.idSelectedSpouse )
-        self.ftGraph.SetSpouse( self.idSelectedSpouse, self.idIndividual )
-
-        self.UpdateSelectedSubject()
-
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedSpouse
-    # --------------------------------------------------------------------
-
-    def OnSelectedSpouse(self, val):
-
-        # If val is None then this means there were non individuals to
-        # choose from so a new one should be created
-
-        if ( val is None ):
-            self.idSelectedSpouse = '***  New Individual ***'
-
-        else:
-            sender = val.widget
-            idx = sender.curselection()
-
-            self.idSelectedSpouse = sender.get(idx)
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedSpouseCancel
-    # --------------------------------------------------------------------
-
-    def OnSelectedSpouseCancel(self):
-
-        self.idSelectedSpouse = None
-
-
-    # --------------------------------------------------------------------
-    # OnGoToSpouse
-    # --------------------------------------------------------------------
-
-    def OnGoToSpouse(self):
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        spouse, idFamilySpouse, dateMarriage, dateDivorced = self.ftGraph.GetSpouse( theIndividual )
-
-        if ( spouse is not None ):
-            self.ChangeSubject( self.ftGraph.GetIndividualID( spouse ) )
-
-
     # --------------------------------------------------------------------
     # OnRemoveFather
     # --------------------------------------------------------------------
@@ -1383,151 +917,6 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    # OnRemoveSpouse
-    # --------------------------------------------------------------------
-
-    def OnRemoveSpouse(self):
-
-        self.ftGraph.RemoveSpouse( self.idIndividual )
-        self.UpdateSelectedSubject()
-
-
-    # --------------------------------------------------------------------
-    # OnAddChild
-    # --------------------------------------------------------------------
-
-    def OnAddChild(self):
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        sex = theIndividual.findtext('SEX')
-        surname = None
-
-        if ( ( not ( sex == 'M' ) ) and ( not ( sex == 'F' ) ) ):
-
-            tkMessageBox.showwarning( 'Warning',
-                                      'Please set the gender of this subject before adding a child.' )
-            return
-
-        children, idFamily = self.ftGraph.GetChildren( theIndividual )
-        idsChildren = []
-        for child in children:
-            idsChildren.append( child.attrib['id'] )
-
-
-        self.idSelectedChild = None
-        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a child',
-                                 self.OnSelectedChild, self.OnSelectedChildCancel,
-                                 [ '***  New Individual ***' ],
-                                 None, [ self.idIndividual ] + idsChildren )
-
-        # Create a new child?
-
-        if ( self.idSelectedChild is None ):
-
-            return
-
-        elif ( self.idSelectedChild == '***  New Individual ***' ):
-
-            self.idSelectedChild = self.GetNewIndividual()
-
-            if ( sex == 'M' ):
-                surname = theIndividual.findtext('NAME/surname')
-            else:
-                spouse, idFamilySpouse, dateMarriage, dateDivorced = self.ftGraph.GetSpouse( theIndividual )
-
-                if ( spouse is not None ):
-                    surname = spouse.findtext('NAME/surname')
-    
-        else:
-
-            self.idSelectedChild = re.search( 'I\d\d\d$', self.idSelectedChild ).group( 0 )
-
-        # Set the child
-
-        self.ftGraph.SetChild( self.idIndividual, self.idSelectedChild )
-
-        if ( ( not surname is None ) and ( len( surname ) > 0 ) ):
-            self.ftGraph.SetLastName( self.idSelectedChild, surname )
-
-        self.UpdateSelectedSubject()
-
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedChild
-    # --------------------------------------------------------------------
-
-    def OnSelectedChild(self, val):
-
-        # If val is None then this means there were non individuals to
-        # choose from so a new one should be created
-
-        if ( val is None ):
-            self.idSelectedChild = '***  New Individual ***'
-
-        else:
-            sender = val.widget
-            idx = sender.curselection()
-
-            self.idSelectedChild = sender.get(idx)
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedChildCancel
-    # --------------------------------------------------------------------
-
-    def OnSelectedChildCancel(self):
-
-        self.idSelectedChild = None
-
-
-    # --------------------------------------------------------------------
-    # OnRemoveChild
-    # --------------------------------------------------------------------
-
-    def OnRemoveChild(self):
-
-        self.idSelectedChild = None
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        children, idFamily = self.ftGraph.GetChildren( theIndividual )
-
-        d = DialogSelectSubject( self.master, self.ftGraph, 'Select a child to remove',
-                                 self.OnSelectedRemoveChild, self.OnSelectedRemoveChildCancel,
-                                 None, None, None, children )
-
-        if ( not self.idSelectedChild is None ):
-            self.ftGraph.RemoveChild( self.idIndividual, self.idSelectedChild )
-
-
-        self.UpdateSelectedSubject()
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedRemoveChild
-    # --------------------------------------------------------------------
-
-    def OnSelectedRemoveChild(self, val):
-
-        if ( not val is None ):
-
-            sender = val.widget
-            idx = sender.curselection()
-            selected = sender.get(idx)
-
-            self.idSelectedChild = re.search( 'I\d\d\d$', selected ).group( 0 )
-
-
-    # --------------------------------------------------------------------
-    # OnSelectedRemoveChildCancel
-    # --------------------------------------------------------------------
-
-    def OnSelectedRemoveChildCancel(self):
-
-        self.idSelectedChild = None
-
-
-    # --------------------------------------------------------------------
     # InitialiseSelectedSubject
     # --------------------------------------------------------------------
 
@@ -1535,8 +924,10 @@ class Application( Frame ):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
+        if ( self.idSelectedFamilySpouse is None ):
+            self.idSelectedFamilySpouse = theIndividual.findtext('FAMILY_SPOUSE')
+
         self.varSelectedID.set( theIndividual.attrib['id'] )
-        self.varSelectedFamilySpouseID.set( theIndividual.findtext('FAMILY_SPOUSE') )
         self.varSelectedFamilyChildID.set( theIndividual.findtext('FAMILY_CHILD') )
 
         self.varSelectedLastName.set( theIndividual.findtext('NAME/surname') or '' )
@@ -1557,54 +948,14 @@ class Application( Frame ):
 
         self.varSelectedBurialPlace.set( theIndividual.findtext('BURIAL/PLACE') or '' )
 
-        marriageDay, marriageMonth, marriageYear = self.ftGraph.GetDateMarried( theIndividual )
-
-        if ( marriageDay is None ):
-            self.varSelectedMarriedDay.set( '' )
-        else:
-            self.varSelectedMarriedDay.set( marriageDay )
-
-        if ( marriageMonth is None ):
-            self.varSelectedMarriedMonth.set( '' )
-        else:
-            self.varSelectedMarriedMonth.set( marriageMonth )
-
-        if ( marriageYear is None ):
-            self.varSelectedMarriedYear.set( '' )
-        else:
-            self.varSelectedMarriedYear.set( marriageYear )
-
-        theFamily = self.ftGraph.GetFamily( theIndividual )
-        if ( theFamily is None ):
-            self.varSelectedMarriedPlace.set( '' )
-        else:
-            self.varSelectedMarriedPlace.set( theFamily.findtext('MARRIAGE/PLACE') or '' )
-
-        divorceDay, divorceMonth, divorceYear = self.ftGraph.GetDateDivorced( theIndividual )
-
-        if ( divorceDay is None ):
-            self.varSelectedDivorcedDay.set( '' )
-        else:
-            self.varSelectedDivorcedDay.set( divorceDay )
-
-        if ( divorceMonth is None ):
-            self.varSelectedDivorcedMonth.set( '' )
-        else:
-            self.varSelectedDivorcedMonth.set( divorceMonth )
-
-        if ( divorceYear is None ):
-            self.varSelectedDivorcedYear.set( '' )
-        else:
-            self.varSelectedDivorcedYear.set( divorceYear )
-
-        self.varSelectedSpouse.set( theIndividual.findtext( 'FAMILY_SPOUSE' ) )
-
 
     # --------------------------------------------------------------------
     # UpdateSelectedSubject
     # --------------------------------------------------------------------
 
     def UpdateSelectedSubject(self):
+
+        print 'UpdateSelectedSubject()'
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
@@ -1613,13 +964,11 @@ class Application( Frame ):
         self.InitialiseSelectedSubject()
 
         self.UpdateSubjectNote()
-        self.UpdateFamilyNote()
 
         self.UpdateFatherButtonAdd()
         self.UpdateMotherButtonAdd()
-        self.UpdateSpouseButtonAdd()
 
-        self.UpdateChildrenListboxItems()
+        self.UpdateFamily()
 
 
     # --------------------------------------------------------------------
@@ -1637,25 +986,6 @@ class Application( Frame ):
         if ( not note is None ):
             self.textSubjectNote.insert( 1.0, note.rstrip() )
             self.textSubjectNote.mark_set(INSERT, 1.0)
-
-
-    # --------------------------------------------------------------------
-    # UpdateFamilyNote
-    # --------------------------------------------------------------------
-
-    def UpdateFamilyNote(self):
-
-        self.textFamilyNote.delete( 1.0, END )
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        theFamily = self.ftGraph.GetFamily( theIndividual )
-
-        if ( not theFamily is None ):
-            note = theFamily.findtext('NOTE')
-
-            if ( not note is None ):
-                self.textFamilyNote.insert( 1.0, note.rstrip() )
-                self.textFamilyNote.mark_set(INSERT, 1.0)
 
 
     # --------------------------------------------------------------------
@@ -1696,26 +1026,6 @@ class Application( Frame ):
 
             self.buttonAddMother['text'] = self.ftGraph.GetLabel( mother )
             self.buttonAddMother['command'] = self.OnGoToMother
-
-
-    # --------------------------------------------------------------------
-    # UpdateSpouseButtonAdd
-    # --------------------------------------------------------------------
-
-    def UpdateSpouseButtonAdd(self):
-
-        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-        spouse, idFamilySpouse, dateMarriage, dateDivorce = self.ftGraph.GetSpouse( theIndividual )
-
-        if ( spouse is None ):
-
-            self.buttonAddSpouse['text'] = 'Add Spouse'
-            self.buttonAddSpouse['command'] = self.OnAddSpouse
-
-        else:
-
-            self.buttonAddSpouse['text'] = self.ftGraph.GetLabel( spouse )
-            self.buttonAddSpouse['command'] = self.OnGoToSpouse
 
 
     # --------------------------------------------------------------------
@@ -1776,37 +1086,74 @@ class Application( Frame ):
 
 
     # --------------------------------------------------------------------
-    # UpdateChildrenListboxItems
+    # UpdateFamily
     # --------------------------------------------------------------------
 
-    def UpdateChildrenListboxItems(self):
+    def UpdateFamily(self):
 
-        self.ChildrenListbox.delete( 0, END )
+        #pdb.set_trace()
+
+        selectedTab = None
+
+        # Delete existing tabs
+
+        for tab in self.notebookFamilies.tabs():
+
+            self.notebookFamilies.forget( tab )
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
-        labels = []
-        theLabel  = None
+        print '\nUpdateFamily()'
+        ET.dump( theIndividual )
 
-        children, idFamily = self.ftGraph.GetChildren( theIndividual )
+        # Create the family tabs for this individual
 
-        for child in children:
+        if ( not theIndividual is None ):
 
-            label = child.attrib['id']
+            self.FamilyTabs = {}
 
-            forename = child.findtext('NAME/forename') or ''
+            eFamilies = theIndividual.findall( 'FAMILY_SPOUSE' )
 
-            if ( not forename is None ):
-                label = forename + ' ' + label
+            print eFamilies
 
-            labels.append( label )
+            if ( len( eFamilies ) == 0 ):
 
-        labels = sorted( labels )
+                self.ftGraph.CreateFamily( theIndividual )
+                eFamilies = theIndividual.findall( 'FAMILY_SPOUSE' )
 
-        for label in labels:
-            self.ChildrenListbox.insert( END, label )
+            for eFamily in eFamilies:
+
+                ET.dump( eFamily )
+
+                idFamily = eFamily.text
+
+                print 'UpdateFamily()', idFamily
+
+                familyTab = FamilyTab.FamilyTab( self.master, self.notebookFamilies,
+                                                 self.ftGraph,
+                                                 self.idIndividual, idFamily, self.familyColumn,
+                                                 self.OnSubjectListboxSelect, self.GetNewIndividual )
+
+                self.FamilyTabs[ idFamily ] = familyTab
+
+                self.notebookFamilies.add( familyTab.familyFrame, text='Family: ' + idFamily )
+
+                if ( self.idSelectedFamilySpouse == idFamily ):
+
+                    selectedTab = familyTab
 
 
+        if ( not selectedTab is None ):
+
+            print 'self.idSelectedFamilySpouse:', self.idSelectedFamilySpouse
+
+            self.notebookFamilies.select( selectedTab.familyFrame )
+
+            selectedTab.UpdateChildrenListboxItems()
+            selectedTab.UpdateSpouseButtonAdd()
+            selectedTab.UpdateFamilyNote()
+
+ 
     # --------------------------------------------------------------------
     # OnSearchEdited
     # --------------------------------------------------------------------
@@ -1953,72 +1300,9 @@ class Application( Frame ):
 
     def CopyFamilyNoteTextToXML(self):
 
-        note = self.textFamilyNote.get(1.0, END)
+        note = self.FamilyTabs[ self.idSelectedFamilySpouse ].textFamilyNote.get(1.0, END)
 
-        self.ftGraph.SetFamilyNote( self.idIndividual, note )
-
-
-    # --------------------------------------------------------------------
-    # OnMarriedDayOptionSelect
-    # --------------------------------------------------------------------
-
-    def OnMarriedDayOptionSelect(self, *args):
-
-        self.ftGraph.SetMarriedDay( self.idIndividual, self.varSelectedMarriedDay.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnMarriedMonthOptionSelect
-    # --------------------------------------------------------------------
-
-    def OnMarriedMonthOptionSelect(self, *args):
-
-        self.ftGraph.SetMarriedMonth( self.idIndividual, self.varSelectedMarriedMonth.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnMarriedYearEdited
-    # --------------------------------------------------------------------
-
-    def OnMarriedYearEdited(self, *args):
-
-        self.ftGraph.SetMarriedYear( self.idIndividual, self.varSelectedMarriedYear.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnMarriedPlaceEdited
-    # --------------------------------------------------------------------
-
-    def OnMarriedPlaceEdited(self, *args):
-
-        self.ftGraph.SetMarriedPlace( self.idIndividual, self.varSelectedMarriedPlace.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnDivorcedDayOptionSelect
-    # --------------------------------------------------------------------
-
-    def OnDivorcedDayOptionSelect(self, *args):
-
-        self.ftGraph.SetDivorcedDay( self.idIndividual, self.varSelectedDivorcedDay.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnDivorcedMonthOptionSelect
-    # --------------------------------------------------------------------
-
-    def OnDivorcedMonthOptionSelect(self, *args):
-
-        self.ftGraph.SetDivorcedMonth( self.idIndividual, self.varSelectedDivorcedMonth.get() )
-
-
-    # --------------------------------------------------------------------
-    # OnDivorcedYearEdited
-    # --------------------------------------------------------------------
-
-    def OnDivorcedYearEdited(self, *args):
-
-        self.ftGraph.SetDivorcedYear( self.idIndividual, self.varSelectedDivorcedYear.get() )
+        self.ftGraph.SetFamilyNote( self.idIndividual, self.idSelectedFamilySpouse, note )
 
 
     # --------------------------------------------------------------------
@@ -2086,6 +1370,41 @@ class Application( Frame ):
 
             self.UpdateSelectedSubject()
             self.UpdateSubjectListboxItems( True )
+
+
+    # --------------------------------------------------------------------
+    # OnFamilyChanged
+    # --------------------------------------------------------------------
+
+    def OnFamilyChanged(self, event):
+
+        tabText = self.notebookFamilies.tab( self.notebookFamilies.index("current"), "text" )
+        self.idSelectedFamilySpouse = re.search( 'F\d\d\d$', tabText ).group( 0 )
+        
+        print 'OnFamilyChanged()', self.idSelectedFamilySpouse
+
+        self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateChildrenListboxItems()
+        self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateSpouseButtonAdd()
+        self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateFamilyNote()
+
+        return "break"
+
+
+    # --------------------------------------------------------------------
+    # OnNewFamily
+    # --------------------------------------------------------------------
+
+    def OnNewFamily( self ):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        if ( not theIndividual is None ):
+
+            print 'Creating new family'
+            family = self.ftGraph.CreateFamily( theIndividual )
+            self.idSelectedFamilySpouse = family.attrib['id']
+
+            self.UpdateFamily()
 
 
     # --------------------------------------------------------------------
@@ -2297,11 +1616,11 @@ class Application( Frame ):
 
     def OnHelpAbout( self ):
 
-        InfoDialog( self.master, 3, 30,
-                    'Family Tree Editor\n' + \
-                    'Copyright (C) 2015\n' + \
-                    'Author: Elstree Caldwell\n' + \
-                    'Email: Elstree.Caldwell@gmail.com' )
+        Dialogs.InfoDialog( self.master, 3, 30,
+                            'Family Tree Editor\n' + \
+                            'Copyright (C) 2015\n' + \
+                            'Author: Elstree Caldwell\n' + \
+                            'Email: Elstree.Caldwell@gmail.com' )
 
 
     # --------------------------------------------------------------------
@@ -2310,28 +1629,28 @@ class Application( Frame ):
 
     def OnHelpWarranty( self ):
 
-        InfoDialog( self.master, 21, 30,
-                    'NO WARRANTY\n' + \
-                    '\n' + \
-                    '  BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ' + \
-                    'FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ' + \
-                    'OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ' + \
-                    'PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED ' + \
-                    'OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF ' + \
-                    'MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS ' + \
-                    'TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE ' + \
-                    'PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, ' + \
-                    'REPAIR OR CORRECTION.\n' + \
-                    '\n' + \
-                    '  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING ' + \
-                    'WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR ' + \
-                    'REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, ' + \
-                    'INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING ' + \
-                    'OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED ' + \
-                    'TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY ' + \
-                    'YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER ' + \
-                    'PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE ' + \
-                    'POSSIBILITY OF SUCH DAMAGES.' )
+        Dialogs.InfoDialog( self.master, 21, 30,
+                            'NO WARRANTY\n' + \
+                            '\n' + \
+                            '  BECAUSE THE PROGRAM IS LICENSED FREE OF CHARGE, THERE IS NO WARRANTY ' + \
+                            'FOR THE PROGRAM, TO THE EXTENT PERMITTED BY APPLICABLE LAW.  EXCEPT WHEN ' + \
+                            'OTHERWISE STATED IN WRITING THE COPYRIGHT HOLDERS AND/OR OTHER PARTIES ' + \
+                            'PROVIDE THE PROGRAM "AS IS" WITHOUT WARRANTY OF ANY KIND, EITHER EXPRESSED ' + \
+                            'OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF ' + \
+                            'MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.  THE ENTIRE RISK AS ' + \
+                            'TO THE QUALITY AND PERFORMANCE OF THE PROGRAM IS WITH YOU.  SHOULD THE ' + \
+                            'PROGRAM PROVE DEFECTIVE, YOU ASSUME THE COST OF ALL NECESSARY SERVICING, ' + \
+                            'REPAIR OR CORRECTION.\n' + \
+                            '\n' + \
+                            '  IN NO EVENT UNLESS REQUIRED BY APPLICABLE LAW OR AGREED TO IN WRITING ' + \
+                            'WILL ANY COPYRIGHT HOLDER, OR ANY OTHER PARTY WHO MAY MODIFY AND/OR ' + \
+                            'REDISTRIBUTE THE PROGRAM AS PERMITTED ABOVE, BE LIABLE TO YOU FOR DAMAGES, ' + \
+                            'INCLUDING ANY GENERAL, SPECIAL, INCIDENTAL OR CONSEQUENTIAL DAMAGES ARISING ' + \
+                            'OUT OF THE USE OR INABILITY TO USE THE PROGRAM (INCLUDING BUT NOT LIMITED ' + \
+                            'TO LOSS OF DATA OR DATA BEING RENDERED INACCURATE OR LOSSES SUSTAINED BY ' + \
+                            'YOU OR THIRD PARTIES OR A FAILURE OF THE PROGRAM TO OPERATE WITH ANY OTHER ' + \
+                            'PROGRAMS), EVEN IF SUCH HOLDER OR OTHER PARTY HAS BEEN ADVISED OF THE ' + \
+                            'POSSIBILITY OF SUCH DAMAGES.' )
 
 
     # --------------------------------------------------------------------
@@ -2340,7 +1659,7 @@ class Application( Frame ):
 
     def OnHelpLicense( self ):
 
-        InfoDialog(self.master, 7, 30,
+        Dialogs.InfoDialog(self.master, 7, 30,
                    'GNU GENERAL PUBLIC LICENSE\n' + \
                    'Version 2, June 1991\n' + \
                    '\n' + \
