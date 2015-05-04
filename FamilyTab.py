@@ -39,7 +39,8 @@ class FamilyTab:
 
     def __init__( self, master, parent, ftGraph,
                   idIndividual, idFamily, familyColumn,
-                  fnOnSubjectListboxSelect, fnGetNewIndividual ):
+                  fnOnSubjectListboxSelect, fnGetNewIndividual,
+                  fnUpdateSelectedSubject, fnChangeSubject ):
 
         
         self.master = master
@@ -50,6 +51,8 @@ class FamilyTab:
         self.familyColumn = familyColumn
         self.OnSubjectListboxSelect = fnOnSubjectListboxSelect
         self.GetNewIndividual = fnGetNewIndividual
+        self.UpdateSelectedSubject = fnUpdateSelectedSubject
+        self.ChangeSubject = fnChangeSubject
 
         self.days = [ '' ] + [str(x) for x in range( 1, 31 )]
 
@@ -60,7 +63,6 @@ class FamilyTab:
 
         self.CreateWidgets()
         
-
              
     # --------------------------------------------------------------------
     # InitialiseMemberParameters
@@ -77,14 +79,18 @@ class FamilyTab:
         self.varSelectedDivorcedMonth = StringVar()
         self.varSelectedDivorcedYear  = StringVar()
 
+        self.InitialiseFamily()
+
 
     # --------------------------------------------------------------------
     # InitialiseFamily
     # --------------------------------------------------------------------
 
-    def InitialiseFamily( self, theIndividual ):
+    def InitialiseFamily( self ):
 
-        marriageDay, marriageMonth, marriageYear = self.ftGraph.GetDateMarried( theIndividual )
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        marriageDay, marriageMonth, marriageYear = self.ftGraph.GetDateMarried( theIndividual, self.idFamily )
 
         if ( marriageDay is None ):
             self.varSelectedMarriedDay.set( '' )
@@ -107,7 +113,7 @@ class FamilyTab:
         else:
             self.varSelectedMarriedPlace.set( theFamily.findtext('MARRIAGE/PLACE') or '' )
 
-        divorceDay, divorceMonth, divorceYear = self.ftGraph.GetDateDivorced( theIndividual )
+        divorceDay, divorceMonth, divorceYear = self.ftGraph.GetDateDivorced( theIndividual, self.idFamily )
 
         if ( divorceDay is None ):
             self.varSelectedDivorcedDay.set( '' )
@@ -142,7 +148,6 @@ class FamilyTab:
         self.labelID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         # Add Spouse
-        print 'CreateFamilyWidgets()'
         self.buttonAddSpouse = Button(self.familyFrame)
         self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
@@ -409,11 +414,6 @@ class FamilyTab:
         self.ftGraph.SetSpouse( self.idIndividual, self.idSelectedSpouse,  self.idFamily )
         self.ftGraph.SetSpouse( self.idSelectedSpouse, self.idIndividual,  self.idFamily )
 
-        print 'OnAddSpouse(): self.idIndividual'
-        ET.dump( self.ftGraph.GetIndividual( self.idIndividual ) )
-        print 'OnAddSpouse(): self.idSelectedSpouse'
-        ET.dump( self.ftGraph.GetIndividual( self.idSelectedSpouse ) )
-
         self.UpdateSelectedSubject()
 
 
@@ -424,7 +424,7 @@ class FamilyTab:
 
     def OnSelectedSpouse(self, val):
 
-        # If val is None then this means there were non individuals to
+        # If val is None then this means there were no individuals to
         # choose from so a new one should be created
 
         if ( val is None ):
@@ -452,14 +452,13 @@ class FamilyTab:
 
     def OnGoToSpouse(self):
 
-        print 'OnGoToSpouse()'
-
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         spouse, idFamilySpouse, dateMarriage, dateDivorced = \
                 self.ftGraph.GetSpouse( theIndividual, self.idFamily )
 
         if ( spouse is not None ):
-            self.ChangeSubject( self.ftGraph.GetIndividualID( spouse ) )
+            self.ChangeSubject( self.ftGraph.GetIndividualID( spouse ), self.idFamily )
+
 
     # --------------------------------------------------------------------
     # OnRemoveSpouse
@@ -634,27 +633,16 @@ class FamilyTab:
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
-        print 'UpdateSpouseButtonAdd()', self.idFamily
-
         spouse, idFamilySpouse, dateMarriage, dateDivorce = \
                 self.ftGraph.GetSpouse( theIndividual, self.idFamily )
 
         if ( spouse is None ):
 
-            print 'spouse is None'
-
             self.buttonAddSpouse['text'] = 'Add Spouse'
             self.buttonAddSpouse['command'] = self.OnAddSpouse
 
-            print 'self.buttonAddSpouse[text]', self.buttonAddSpouse['text']
-
         else:
 
-            print 'spouse is not None'
-            print self.ftGraph.GetLabel( spouse )
-
-            ET.dump( spouse )
-        
             self.buttonAddSpouse['text'] = self.ftGraph.GetLabel( spouse )
             self.buttonAddSpouse['command'] = self.OnGoToSpouse
 
@@ -696,7 +684,7 @@ class FamilyTab:
 
     def OnMarriedDayOptionSelect(self, *args):
 
-        self.ftGraph.SetMarriedDay( self.idIndividual, self.varSelectedMarriedDay.get() )
+        self.ftGraph.SetMarriedDay( self.idIndividual, self.varSelectedMarriedDay.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -705,7 +693,7 @@ class FamilyTab:
 
     def OnMarriedMonthOptionSelect(self, *args):
 
-        self.ftGraph.SetMarriedMonth( self.idIndividual, self.varSelectedMarriedMonth.get() )
+        self.ftGraph.SetMarriedMonth( self.idIndividual, self.varSelectedMarriedMonth.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -714,7 +702,7 @@ class FamilyTab:
 
     def OnMarriedYearEdited(self, *args):
 
-        self.ftGraph.SetMarriedYear( self.idIndividual, self.varSelectedMarriedYear.get() )
+        self.ftGraph.SetMarriedYear( self.idIndividual, self.varSelectedMarriedYear.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -723,7 +711,7 @@ class FamilyTab:
 
     def OnMarriedPlaceEdited(self, *args):
 
-        self.ftGraph.SetMarriedPlace( self.idIndividual, self.varSelectedMarriedPlace.get() )
+        self.ftGraph.SetMarriedPlace( self.idIndividual, self.varSelectedMarriedPlace.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -732,7 +720,7 @@ class FamilyTab:
 
     def OnDivorcedDayOptionSelect(self, *args):
 
-        self.ftGraph.SetDivorcedDay( self.idIndividual, self.varSelectedDivorcedDay.get() )
+        self.ftGraph.SetDivorcedDay( self.idIndividual, self.varSelectedDivorcedDay.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -741,7 +729,7 @@ class FamilyTab:
 
     def OnDivorcedMonthOptionSelect(self, *args):
 
-        self.ftGraph.SetDivorcedMonth( self.idIndividual, self.varSelectedDivorcedMonth.get() )
+        self.ftGraph.SetDivorcedMonth( self.idIndividual, self.varSelectedDivorcedMonth.get(), self.idFamily )
 
 
     # --------------------------------------------------------------------
@@ -750,5 +738,5 @@ class FamilyTab:
 
     def OnDivorcedYearEdited(self, *args):
 
-        self.ftGraph.SetDivorcedYear( self.idIndividual, self.varSelectedDivorcedYear.get() )
+        self.ftGraph.SetDivorcedYear( self.idIndividual, self.varSelectedDivorcedYear.get(), self.idFamily )
 

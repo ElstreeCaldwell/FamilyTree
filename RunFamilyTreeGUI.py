@@ -731,13 +731,13 @@ class Application( Frame ):
     # ChangeSubject
     # --------------------------------------------------------------------
 
-    def ChangeSubject(self, idIndividual):
+    def ChangeSubject(self, idIndividual, idFamily=None):
 
         self.CopySubjectNoteTextToXML()
         self.CopyFamilyNoteTextToXML()
 
         self.idIndividual = idIndividual
-        self.idSelectedFamilySpouse = None
+        self.idSelectedFamilySpouse = idFamily
         
         self.UpdateSelectedSubject()
         
@@ -777,6 +777,13 @@ class Application( Frame ):
         elif ( self.idSelectedFather == '***  New Individual ***' ):
 
             self.idSelectedFather = self.GetNewIndividual()
+            theFather = self.ftGraph.GetIndividual( self.idSelectedFather )
+
+            theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+            surname = theIndividual.findtext('NAME/surname')
+
+            if ( ( not surname is None ) and ( len( surname ) > 0 ) ):
+                self.ftGraph.SetLastName( self.idSelectedFather, surname )
 
         else:
 
@@ -955,11 +962,7 @@ class Application( Frame ):
 
     def UpdateSelectedSubject(self):
 
-        print 'UpdateSelectedSubject()'
-
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
-
-        #ET.dump( theIndividual )
 
         self.InitialiseSelectedSubject()
 
@@ -1103,9 +1106,6 @@ class Application( Frame ):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
 
-        print '\nUpdateFamily()'
-        ET.dump( theIndividual )
-
         # Create the family tabs for this individual
 
         if ( not theIndividual is None ):
@@ -1114,8 +1114,6 @@ class Application( Frame ):
 
             eFamilies = theIndividual.findall( 'FAMILY_SPOUSE' )
 
-            print eFamilies
-
             if ( len( eFamilies ) == 0 ):
 
                 self.ftGraph.CreateFamily( theIndividual )
@@ -1123,16 +1121,13 @@ class Application( Frame ):
 
             for eFamily in eFamilies:
 
-                ET.dump( eFamily )
-
                 idFamily = eFamily.text
-
-                print 'UpdateFamily()', idFamily
 
                 familyTab = FamilyTab.FamilyTab( self.master, self.notebookFamilies,
                                                  self.ftGraph,
                                                  self.idIndividual, idFamily, self.familyColumn,
-                                                 self.OnSubjectListboxSelect, self.GetNewIndividual )
+                                                 self.OnSubjectListboxSelect, self.GetNewIndividual,
+                                                 self.UpdateSelectedSubject, self.ChangeSubject )
 
                 self.FamilyTabs[ idFamily ] = familyTab
 
@@ -1144,8 +1139,6 @@ class Application( Frame ):
 
 
         if ( not selectedTab is None ):
-
-            print 'self.idSelectedFamilySpouse:', self.idSelectedFamilySpouse
 
             self.notebookFamilies.select( selectedTab.familyFrame )
 
@@ -1381,8 +1374,6 @@ class Application( Frame ):
         tabText = self.notebookFamilies.tab( self.notebookFamilies.index("current"), "text" )
         self.idSelectedFamilySpouse = re.search( 'F\d\d\d$', tabText ).group( 0 )
         
-        print 'OnFamilyChanged()', self.idSelectedFamilySpouse
-
         self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateChildrenListboxItems()
         self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateSpouseButtonAdd()
         self.FamilyTabs[ self.idSelectedFamilySpouse ].UpdateFamilyNote()
@@ -1400,7 +1391,6 @@ class Application( Frame ):
 
         if ( not theIndividual is None ):
 
-            print 'Creating new family'
             family = self.ftGraph.CreateFamily( theIndividual )
             self.idSelectedFamilySpouse = family.attrib['id']
 
@@ -1504,9 +1494,15 @@ class Application( Frame ):
 
         options['defaultextension'] = '.png'
         options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
-        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = 'Specify Family Tree Plot Output File'
+
+        if ( not self.fileOutXML is None ):
+            options['initialfile'] = self.fileOutXML.replace( '.xml', '.png' )
+        elif ( not self.fileInXML is None ):
+            options['initialfile'] = self.fileInXML.replace( '.xml', '.png' )
+        else:
+            options['initialfile'] = 'FamilyTree.png'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
@@ -1526,9 +1522,15 @@ class Application( Frame ):
 
         options['defaultextension'] = '.png'
         options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
-        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Family Tree Plot File"
+
+        if ( not self.fileOutXML is None ):
+            options['initialfile'] = self.fileOutXML.replace( '.xml', '.png' )
+        elif ( not self.fileInXML is None ):
+            options['initialfile'] = self.fileInXML.replace( '.xml', '.png' )
+        else:
+            options['initialfile'] = 'FamilyTree.png'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
@@ -1549,9 +1551,15 @@ class Application( Frame ):
 
         options['defaultextension'] = '.png'
         options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
-        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Ancestors Tree Plot File"
+
+        if ( not self.fileOutXML is None ):
+            options['initialfile'] = self.fileOutXML.replace( '.xml', '.png' )
+        elif ( not self.fileInXML is None ):
+            options['initialfile'] = self.fileInXML.replace( '.xml', '.png' )
+        else:
+            options['initialfile'] = 'FamilyTree.png'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
@@ -1574,9 +1582,15 @@ class Application( Frame ):
 
         options['defaultextension'] = '.png'
         options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
-        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Ancestors Tree Plot File"
+
+        if ( not self.fileOutXML is None ):
+            options['initialfile'] = self.fileOutXML.replace( '.xml', '.png' )
+        elif ( not self.fileInXML is None ):
+            options['initialfile'] = self.fileInXML.replace( '.xml', '.png' )
+        else:
+            options['initialfile'] = 'FamilyTree.png'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
@@ -1597,9 +1611,15 @@ class Application( Frame ):
 
         options['defaultextension'] = '.png'
         options['filetypes'] = [('all files', '.*'), ('image files', '.png')]
-        options['initialfile'] = 'FamilyTree.png'
         options['parent'] = self
         options['title'] = "Specify Subject's Descendents Tree Plot File"
+
+        if ( not self.fileOutXML is None ):
+            options['initialfile'] = self.fileOutXML.replace( '.xml', '.png' )
+        elif ( not self.fileInXML is None ):
+            options['initialfile'] = self.fileInXML.replace( '.xml', '.png' )
+        else:
+            options['initialfile'] = 'FamilyTree.png'
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
