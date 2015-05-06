@@ -366,16 +366,23 @@ class Application( Frame ):
 
     def CreateWidgets(self):
 
+        self.labelEmpty = []
+
         iRow = 0
         iCol = 0
+
+        # Empty
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, padx=5, column=iCol, columnspan=1 )
 
         nColumns = 2
         nRows = 22
 
+        iCol = iCol + 1
+
         self.CreateSubjectListbox( nColumns, nRows, iRow, iCol )
 
         iRow = iRow + nRows + 2
-        iCol = 0
 
         # SearchSubjects
         self.labelSearch = Label(self, text='Subject Search')
@@ -392,7 +399,13 @@ class Application( Frame ):
 
 
         iRow = 0
-        iCol = 4
+        iCol = iCol + 3
+
+        # Empty
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, padx=5, column=iCol, columnspan=1 )
+
+        iCol = iCol + 1
 
         # Subject
         self.labelID = Label(self, text='Subject')
@@ -415,19 +428,6 @@ class Application( Frame ):
 
         self.labelSelectedFamilyChildID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
                                    sticky=N+S+E+W )
-
-        iRow = iRow + 1
-
-        # Sex
-        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)
-        self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
-                                             ' ', 'M', 'F' )
-        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect )
-
-        self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
-        self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
 
         iRow = iRow + 1
 
@@ -470,9 +470,29 @@ class Application( Frame ):
 
         iRow = iRow + 1
 
+        # Sex
+        self.labelSex = Label(self, text='Sex:', anchor=W, justify=LEFT)
+        self.labelSex.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.optionSelectedSex = OptionMenu( self, self.varSelectedSex,
+                                             ' ', 'M', 'F' )
+        self.optionSelectedSex.bind( '<<ListboxSelect>>', self.OnSexOptionSelect )
+
+        self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
+        self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
+
+        # New Family
+        self.buttonNewFamily = Button(self)
+        self.buttonNewFamily['text'] = 'New Family'
+        self.buttonNewFamily['command'] = self.OnNewFamily
+
+        self.buttonNewFamily.grid(row=iRow, column=iCol+2, rowspan=1, columnspan=3, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
         # Empty
-        self.labelEmpty1 = Label( self )
-        self.labelEmpty1.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
 
@@ -563,8 +583,8 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Empty
-        self.labelEmpty2 = Label( self )
-        self.labelEmpty2.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
  
@@ -600,8 +620,8 @@ class Application( Frame ):
         iRow = iRow + 1
 
         # Empty
-        self.labelEmpty3 = Label( self )
-        self.labelEmpty3.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
  
@@ -626,7 +646,7 @@ class Application( Frame ):
         self.textSubjectNote = Text( self, height=nRows, width=nColumns,
                                      xscrollcommand=self.SubjectNoteScrollbarX.set,
                                      yscrollcommand=self.SubjectNoteScrollbarY.set,
-                                     wrap=WORD )
+                                     wrap=WORD, relief=SUNKEN )
         self.textSubjectNote.grid( row=iRow, rowspan=nRows, column=iCol+1,
                                    columnspan=nColumns, sticky=N+S+E+W )
 
@@ -650,30 +670,17 @@ class Application( Frame ):
 
         self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
-        iRow = iRow + 1
-
-        # New Family
-        self.buttonNewFamily = Button(self)
-        self.buttonNewFamily['text'] = 'New Family'
-        self.buttonNewFamily['command'] = self.OnNewFamily
-
-        self.buttonNewFamily.grid(row=iRow, column=iCol+1, rowspan=1, columnspan=4, sticky=N+S+E+W)
-
 
         # The Family tabs
 
         self.familyColumn = iCol
         
         self.notebookFamilies = ttk.Notebook( self.master, name='families' )
-        self.notebookFamilies.grid(row=0, column=iCol, sticky=N+S)
+        self.notebookFamilies.grid(row=0, rowspan=12, column=iCol, sticky=N+S+E+W)
 
         self.notebookTabChangedFnID = self.notebookFamilies.bind_all( "<<NotebookTabChanged>>",
                                                                       self.OnFamilyChanged )
         
-        self.style = ttk.Style()
-        self.style.configure('.', foreground='black', background='white')
-
-
         
         #for column in range( iCol + 1 ):
         #    self.columnconfigure(column, weight=1)
