@@ -85,15 +85,38 @@ class FamilyTreeGraph( FamilyTreeXML ):
             birthDate = self.ConvertDateTupleToLabel( self.GetDate( individual.find('BIRTH') ) )
             deathDate = self.ConvertDateTupleToLabel( self.GetDate( individual.find('DEATH') ) )
 
-            marriageDate = self.ConvertDateTupleToLabel( self.GetDateMarried( individual ) )
+            families = individual.findall('FAMILY_SPOUSE')
+
+            labelsMarried = []
+            labelMarried = None
+            
+            for family in families:
+
+                dateMarriage = self.ConvertDateTupleToLabel( self.GetDateMarried( individual,
+                                                                                  family.text ) )
+                dateDivorced = self.ConvertDateTupleToLabel( self.GetDateDivorced( individual,
+                                                                                  family.text ) )
+
+                if ( ( not dateMarriage is None ) and ( len( dateMarriage ) > 0 ) and
+                     ( not dateDivorced is None ) and ( len( dateDivorced ) > 0 ) ):
+                    labelMarried = 'm.' + dateMarriage + ', div.' + dateDivorced
+
+                elif ( ( not dateMarriage is None ) and ( len( dateMarriage ) > 0 ) ):
+                    labelMarried = 'm.' + dateMarriage
+
+                elif ( ( not dateDivorced is None ) and ( len( dateDivorced ) > 0 ) ):
+                    labelMarried = 'div.' + dateDivorced
+
+                if ( not labelMarried is None ):
+                    labelsMarried.append( labelMarried )
 
             label = name
 
             if ( ( not birthDate is None ) and ( len( birthDate ) > 0 ) ):
                 label = label + '\nb. {:s}'.format( birthDate )
 
-            if ( ( not marriageDate is None ) and ( len( marriageDate ) > 0 ) ):
-                label = label + '\nm. {:s}'.format( marriageDate )
+            #if ( len( labelsMarried ) > 0 ):
+            #    label = label + '\n' + '\n'.join( labelsMarried )
 
             if ( ( not deathDate is None ) and ( len( deathDate ) > 0 ) ):
                 label = label + '\nd. {:s}'.format( deathDate )
@@ -110,10 +133,10 @@ class FamilyTreeGraph( FamilyTreeXML ):
 
             nIndividuals = nIndividuals + 1
 
-        print '\nNumber of individuals:', nIndividuals, '\n\n'
+        print '\nNumber of individuals:', nIndividuals, '\n'
 
 
-        if ( ( self.idIndividual is not None ) and ( self.theIndividual is None ) ):
+        if ( ( not self.idIndividual is None ) and ( self.theIndividual is None ) ):
 
             raise Exception( 'ERROR: Cannot find individual with id: {:s}'.format( idIndi ) )
 
@@ -128,7 +151,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
         # Plot ancestors and descendents for a specific individual
         # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-        if ( self.theIndividual is not None ):
+        if ( not self.theIndividual is None ):
 
              self.graph = self.PlotSubTree()
 
@@ -299,7 +322,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
 
             for individual in self.GetIndividuals():
 
-                self.PlotIndividual( individual )
+                self.PlotIndividual( individual, True, True, False, False, True  )
 
         except:
             print "ERROR: ", sys.exc_info()[0]
@@ -316,38 +339,53 @@ class FamilyTreeGraph( FamilyTreeXML ):
         if ( individual is None ):
             return None
 
+        spouses = []
+
         id = individual.attrib['id']
         sex = individual.findtext('SEX')
 
-        spouse, idFamilySpouse, dateMarriage, dateDivorce = self.GetSpouse( individual )
+        spouseTuple = self.GetSpouses( individual )
 
-        if ( spouse is not None ):
+        for spouseTuple in spouses:
 
-            dateMarriage = self.ConvertDateTupleToLabel( dateMarriage )
+            spouse, idFamilySpouse, dateMarriage, dateDivorce = spouseTuple
 
-            if ( dateMarriage is not None ):
-                labelMarried = 'm' + dateMarriage
-            else:
-                labelMarried = 'm'
+            if ( not spouse is None ):
 
-            print 'PlotSpouse Spouse:', self.GetNameAndID( spouse ), '( Family:', idFamilySpouse, \
-                  'Married:', dateMarriage, ')'
+                dateMarriage = self.ConvertDateTupleToLabel( dateMarriage )
+                dateDivorced = self.ConvertDateTupleToLabel( dateDivorce )
 
-            #couple = pydot.Subgraph(rank='same')
-            couple = pydot.Subgraph()
+                labelMarried = None
 
-            couple.add_node( self.nodes[ id ] )
-            couple.add_node( self.nodes[ spouse.attrib['id'] ] )
+                if ( ( not dateMarriage is None ) and ( not dateDivorced is None ) ):
+                    labelMarried = 'm' + dateMarriage + '\nd' + dateDivorced
 
-            self.graph.add_subgraph( couple )
+                elif ( not dateMarriage is None ):
+                    labelMarried = 'm' + dateMarriage
 
-            if ( sex == 'M' ):
-                #edge = pydot.Edge( self.nodes[ id ], self.nodes[ spouse.attrib['id'] ], label=labelMarried )
-                edge = pydot.Edge( self.nodes[ id ], self.nodes[ spouse.attrib['id'] ],
-                                   dir='both', arrowhead='dot', arrowtail='dot', penwidth='3' )
-                self.graph.add_edge( edge )
+                elif ( not dateDivorced is None ):
+                    labelMarried = 'd' + dateDivorced
 
-        return spouse
+
+                #couple = pydot.Subgraph(rank='same')
+                couple = pydot.Subgraph()
+
+                couple.add_node( self.nodes[ id ] )
+                couple.add_node( self.nodes[ spouse.attrib['id'] ] )
+
+                self.graph.add_subgraph( couple )
+
+                if ( sex == 'M' ):
+
+                    edge = pydot.Edge( self.nodes[ id ], self.nodes[ spouse.attrib['id'] ],
+                                       dir='both', arrowhead='dot', arrowtail='dot', penwidth='3',
+                                       label=labelMarried )
+
+                    self.graph.add_edge( edge )
+
+                spouses.append( spouse )
+
+        return spouses
 
     # ----------------------------------------------------------------------
 
@@ -358,34 +396,52 @@ class FamilyTreeGraph( FamilyTreeXML ):
         id = individual.attrib['id']
         sex = individual.findtext('SEX')
 
-        wife, idFamilyWife, dateMarriage, dateDivorce = self.GetWife( individual )
+        wives = []
 
-        if ( wife is not None ):
+        wifeTuples = self.GetWives( individual )
 
-            dateMarriage = self.ConvertDateTupleToLabel( dateMarriage )
+        for wifeTuple in wifeTuples:
 
-            if ( dateMarriage is not None ):
-                labelMarried = 'm' + dateMarriage
-            else:
-                labelMarried = 'm'
+            wife, idFamilyWife, dateMarriage, dateDivorce = wifeTuple
 
-            print 'PlotWife Wife:', self.GetNameAndID( wife ), '( Family:', idFamilyWife, 'Married:', dateMarriage, ')'
+            if ( not wife is None ):
 
-            #couple = pydot.Subgraph(rank='same')
-            couple = pydot.Subgraph()
+                dateMarriage = self.ConvertDateTupleToLabel( dateMarriage )
+                dateDivorce = self.ConvertDateTupleToLabel( dateDivorce )
 
-            couple.add_node( self.nodes[ id ] )
-            couple.add_node( self.nodes[ wife.attrib['id'] ] )
+                labelMarried = None
 
-            self.graph.add_subgraph( couple )
+                if ( ( not dateMarriage is None ) and ( len( dateMarriage ) > 0 ) and
+                     ( not dateDivorce is None ) and ( len( dateDivorce ) > 0 ) ):
+                    labelMarried = 'm.' + dateMarriage + ', div.' + dateDivorce
 
-            #edge = pydot.Edge( self.nodes[ id ], self.nodes[ wife.attrib['id'] ], label=labelMarried )
-            edge = pydot.Edge( self.nodes[ id ], self.nodes[ wife.attrib['id'] ],
-                               dir='both', arrowhead='dot', arrowtail='dot', penwidth='2' )
-            self.graph.add_edge( edge )
+                elif ( ( not dateMarriage is None ) and ( len( dateMarriage ) > 0 ) ):
+                    labelMarried = 'm.' + dateMarriage
 
-        return wife
+                elif ( ( not dateDivorce is None ) and ( len( dateDivorce ) > 0 ) ):
+                    labelMarried = 'div.' + dateDivorce
 
+                #couple = pydot.Subgraph(rank='same')
+                couple = pydot.Subgraph()
+
+                couple.add_node( self.nodes[ id ] )
+                couple.add_node( self.nodes[ wife.attrib['id'] ] )
+
+                self.graph.add_subgraph( couple )
+
+                if ( labelMarried is None ):
+                    edge = pydot.Edge( self.nodes[ id ], self.nodes[ wife.attrib['id'] ],
+                                       dir='both', arrowhead='dot', arrowtail='dot', penwidth='2' )
+                else:
+                    edge = pydot.Edge( self.nodes[ id ], self.nodes[ wife.attrib['id'] ],
+                                       dir='both', arrowhead='dot', arrowtail='dot', penwidth='2', label=labelMarried )
+
+                self.graph.add_edge( edge )
+
+                wives.append( wife )
+
+        return wives
+    
     # ----------------------------------------------------------------------
 
 
@@ -399,16 +455,16 @@ class FamilyTreeGraph( FamilyTreeXML ):
         sex = individual.findtext('SEX')
 
         if ( sex == 'M' ):
-            wife = self.PlotWife( individual )
+            for wife in self.PlotWife( individual ):
 
-            if ( wife is not None ):
-                return self.PlotChildren( wife )
+                if ( not wife is None ):
+                    self.PlotChildren( wife )
 
-        children, idFamilyChild = self.GetChildren( individual )
+            return
+
+        children = self.GetChildren( individual )
 
         for child in children:
-
-            print 'PlotChildren Child:', self.GetNameAndID( child ), '( Family:', idFamilyChild, ')'
 
             self.graph.add_node( self.nodes[ id ] )
             self.graph.add_node( self.nodes[ child.attrib['id'] ] )
@@ -430,8 +486,6 @@ class FamilyTreeGraph( FamilyTreeXML ):
 
         for sibling in siblings:
 
-            print 'PlotSiblings Sibling:', self.GetNameAndID( sibling ), '( Family:', idFamilySibling, ')'
-
             self.PlotIndividual( sibling, False )
 
         return siblings
@@ -446,9 +500,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
 
         mother, father, idFamilyChild = self.GetParents( individual )
 
-        if ( ( mother is not None ) and ( father is not None ) ):
-            print 'PlotParents Mother:', self.GetNameAndID( mother ), '( Family:', idFamilyChild, ')'
-            print 'PlotParents Father:', self.GetNameAndID( father ), '( Family:', idFamilyChild, ')'
+        if ( ( not mother is None ) and ( not father is None ) ):
 
             #parents = pydot.Subgraph(rank='same')
             parents = pydot.Subgraph()
@@ -465,16 +517,14 @@ class FamilyTreeGraph( FamilyTreeXML ):
                                dir='both', arrowhead='dot', arrowtail='dot', penwidth='2' )
             self.graph.add_edge( edge )
 
-        elif ( mother is not None ):
-            print 'PlotParents Mother:', self.GetNameAndID( mother ), '( Family:', idFamilyChild, ')'
+        elif ( not mother is None ):
 
             self.graph.add_node( self.nodes[ mother.attrib['id'] ] )
 
             edge = pydot.Edge( self.nodes[ mother.attrib['id'] ], self.nodes[ id ] )
             self.graph.add_edge( edge )
 
-        elif ( father is not None ):
-            print 'PlotParents Father:', self.GetNameAndID( father ), '( Family:', idFamilyChild, ')'
+        elif ( not father is None ):
 
             self.graph.add_node( self.nodes[ father.attrib['id'] ] )
 
@@ -493,8 +543,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
 
         mother, father, idFamilyChild = self.GetParents( individual )
 
-        if ( mother is not None ):
-            print 'PlotMother Mother:', self.GetNameAndID( mother ), '( Family:', idFamilyChild, ')'
+        if ( not mother is None ):
 
             self.graph.add_node( self.nodes[ mother.attrib['id'] ] )
 
@@ -520,23 +569,15 @@ class FamilyTreeGraph( FamilyTreeXML ):
         name = self.GetNameAndID( individual )
         sex = individual.findtext('SEX')
 
-        print 'PlotIndividual', ET.tostring( individual ), '\n', name
-
         # Spouse
 
         spouse = None
 
         if ( flgPlotSpouse ):
-            spouse = self.PlotSpouse( individual )
-            self.PlotSpouse( spouse )
+            spouses = self.PlotSpouse( individual )
 
-        elif ( flgPlotWife ):
-            wife = self.PlotWife( individual )
-
-            if ( ( wife is not None ) and  flgPlotChildren ):
-                self.PlotChildren( wife )
-            elif ( flgPlotChildren ):
-                self.PlotChildren( individual )
+            for spouse in spouses:
+                self.PlotSpouse( spouse )
 
         #if ( spouse is None ):
         #    self.graph.add_node( self.nodes[ id ] )
@@ -549,7 +590,17 @@ class FamilyTreeGraph( FamilyTreeXML ):
         # Wife
 
         if ( flgPlotWife ):
-            wife = self.PlotWife( individual )
+            wives = self.PlotWife( individual )
+
+            for wife in wives:
+                
+                if ( ( not wife is None ) and  flgPlotChildren ):
+
+                    self.PlotChildren( wife )
+
+                elif ( flgPlotChildren ):
+
+                    self.PlotChildren( individual )
 
         # Children
 
@@ -573,7 +624,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
                        flgPlotSiblings=False,
                        flgPlotWife=False):
 
-        if ( individual is not None ):
+        if ( not individual is None ):
 
             mother, father = self.PlotIndividual( individual,
                                                   flgPlotSpouse,
@@ -582,7 +633,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
                                                   flgPlotSiblings,
                                                   flgPlotWife )
 
-            if ( mother is not None ):
+            if ( not mother is None ):
                 self.PlotAncestors( mother,
                                     flgPlotSpouse,
                                     flgPlotParents,
@@ -590,7 +641,7 @@ class FamilyTreeGraph( FamilyTreeXML ):
                                     flgPlotSiblings,
                                     flgPlotWife )
 
-            if ( father is not None ):
+            if ( not father is None ):
                 self.PlotAncestors( father,
                                     flgPlotSpouse,
                                     flgPlotParents,
@@ -604,14 +655,13 @@ class FamilyTreeGraph( FamilyTreeXML ):
     # ----------------------------------------------------------------------
     def PlotDescendents( self, individual ):
 
-        if ( individual is not None ):
+        if ( not individual is None ):
 
             self.PlotChildren( individual )
 
-            children, idFamily = self.GetChildren( individual )
+            children = self.GetChildren( individual )
 
             for child in children:
-                print 'PlotDescendents child', ET.tostring( child )
                 self.PlotDescendents( child )
 
     # ----------------------------------------------------------------------
