@@ -1,0 +1,273 @@
+<FamilyTree>
+  <HEADER>
+    <SOURCE>RunFamilyTreeGUI.py</SOURCE>
+    <AUTHOR>
+      <forename>Elstree</forename>
+      <surname>Caldwell</surname>
+    </AUTHOR>
+    <DATE>
+      <day>7</day>
+      <month>5</month>
+      <year>2015</year>
+    </DATE>
+    <FILE>HouseOfTudor.xml</FILE>
+  </HEADER>
+  <INDIVIDUAL id="I001">
+    <NAME>
+      <surname>Tudor</surname>
+      <forename>Henry</forename>
+    </NAME>
+    <ALIAS>VII</ALIAS>
+    <SEX>M</SEX>
+    <BIRTH>
+      <DATE>
+        <day></day>
+        <month></month>
+        <year>1457</year>
+      </DATE>
+      <PLACE></PLACE>
+    </BIRTH>
+    <DEATH>
+      <DATE>
+        <day></day>
+        <month></month>
+        <year>1509</year>
+      </DATE>
+      <PLACE></PLACE>
+    </DEATH>
+    <BURIAL>
+      <PLACE></PLACE>
+    </BURIAL>
+    <FAMILY_SPOUSE>F001<NOTE>
+</NOTE></FAMILY_SPOUSE>
+    <NOTE>
+</NOTE>
+  <FAMILY_CHILD>F024</FAMILY_CHILD></INDIVIDUAL>
+  <FAMILY id="F001">
+    <WIFE>I002</WIFE>
+    <HUSBAND>I001</HUSBAND>
+    <CHILD>I003</CHILD>
+    <CHILD>I005</CHILD>
+  <CHILD>I006</CHILD><CHILD>I007</CHILD><MARRIAGE><DATE><year>1486</year></DATE></MARRIAGE></FAMILY>
+  <INDIVIDUAL id="I002">
+    <SEX>F</SEX>
+    <FAMILY_SPOUSE>F001<NOTE>
+</NOTE></FAMILY_SPOUSE>
+    <NAME>
+      <surname/>
+      <forename>Elizabeth</forename>
+    </NAME>
+    <ALIAS>of York</ALIAS>
+    <BIRTH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1466</year>
+      </DATE>
+      <PLACE/>
+    </BIRTH>
+    <DEATH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1503</year>
+      </DATE>
+      <PLACE/>
+    </DEATH>
+    <BURIAL>
+      <PLACE/>
+    </BURIAL>
+    <NOTE>
+</NOTE>
+  </INDIVIDUAL>
+  <INDIVIDUAL id="I003">
+    <FAMILY_CHILD>F001</FAMILY_CHILD>
+    <NAME>
+      <surname>Tudor</surname>
+      <forename>Arthur</forename>
+    </NAME>
+    <ALIAS/>
+    <SEX>M</SEX>
+    <BIRTH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1486</year>
+      </DATE>
+      <PLACE/>
+    </BIRTH>
+    <DEATH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1502</year>
+      </DATE>
+      <PLACE/>
+    </DEATH>
+    <BURIAL>
+      <PLACE/>
+    </BURIAL>
+    <FAMILY_SPOUSE>F002<NOTE>
+</NOTE></FAMILY_SPOUSE>
+    <NOTE>
+</NOTE>
+  </INDIVIDUAL>
+  <FAMILY id="F002">
+    <WIFE>I004</WIFE>
+    <HUSBAND>I003</HUSBAND>
+  <MARRIAGE><DATE><year>1501</year></DATE></MARRIAGE><DIVORCE><DATE><year/></DATE></DIVORCE></FAMILY>
+  <INDIVIDUAL id="I004">
+    <SEX>F</SEX>
+    <FAMILY_SPOUSE>F002<NOTE>
+</NOTE></FAMILY_SPOUSE>
+    <NAME>
+      <surname/>
+      <forename>Catherine</forename>
+    </NAME>
+    <ALIAS>of Aragon</ALIAS>
+    <BIRTH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1485</year>
+      </DATE>
+      <PLACE/>
+    </BIRTH>
+    <DEATH>
+      <DATE>
+        <day/>
+        <month/>
+        <year>1536</year>
+      </DATE>
+      <PLACE/>
+    </DEATH>
+    <BURIAL>
+      <PLACE/>
+    </BURIAL>
+    <NOTE>
+</NOTE>
+    <FAMILY_SPOUSE>F003<NOTE>
+</NOTE></FAMILY_SPOUSE>
+  </INDIVIDUAL>
+  <INDIVIDUAL id="I005">
+    <FAMILY_CHILD>F001</FAMILY_CHILD>
+    <NAME>
+      <surname>Tudor</surname>
+      <forename>Henry</forename>
+    </NAME>
+    <ALIAS>VIII</ALIAS>
+    <SEX>M</SEX>
+    <BIRTH>
+      <DATE>
+        <day></day>
+        <month></month>
+        <year>1501</year>
+      </DATE>
+      <PLACE></PLACE>
+    </BIRTH>
+    <DEATH>
+      <DATE>
+        <day></day>
+        <month></month>
+        <year>1536</year>
+      </DATE>
+      <PLACE></PLACE>
+    </DEATH>
+    <BURIAL>
+      <PLACE></PLACE>
+    </BURIAL>
+    <FAMILY_SPOUSE>F003<NOTE>
+</NOTE></FAMILY_SPOUSE>
+  <NOTE>
+</NOTE><FAMILY_SPOUSE>F007<NOTE>
+</NOTE></FAMILY_SPOUSE><FAMILY_SPOUSE>F009<NOTE>
+</NOTE></FAMILY_SPOUSE><FAMILY_SPOUSE>F011<NOTE>
+</NOTE></FAMILY_SPOUSE><FAMILY_SPOUSE>F012<NOTE>
+</NOTE></FAMILY_SPOUSE><FAMILY_SPOUSE>F013<NOTE>
+</NOTE></FAMILY_SPOUSE></INDIVIDUAL>
+  <FAMILY id="F003">
+    <WIFE>I004</WIFE>
+    <HUSBAND>I005</HUSBAND>
+  <CHILD>I008</CHILD><MARRIAGE><DATE><year>1509</year></DATE></MARRIAGE><DIVORCE><DATE><year>1533</year></DATE></DIVORCE></FAMILY>
+<INDIVIDUAL id="I006"><FAMILY_CHILD>F001</FAMILY_CHILD><NAME><surname>Tudor</surname><forename>Margaret</forename></NAME><ALIAS></ALIAS><SEX>F</SEX><BIRTH><DATE><day></day><month></month><year>1489</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1541</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F004<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE><FAMILY_SPOUSE>F014<NOTE>
+</NOTE></FAMILY_SPOUSE></INDIVIDUAL><FAMILY id="F004"><WIFE>I006</WIFE><HUSBAND>I017</HUSBAND><CHILD>I019</CHILD></FAMILY><INDIVIDUAL id="I007"><FAMILY_CHILD>F001</FAMILY_CHILD><NAME><surname>Tudor</surname><forename>Mary</forename></NAME><ALIAS></ALIAS><SEX>F</SEX><BIRTH><DATE><day></day><month></month><year>1496</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1533</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F005<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE><FAMILY_SPOUSE>F020<NOTE>
+</NOTE></FAMILY_SPOUSE></INDIVIDUAL><FAMILY id="F005"><WIFE>I007</WIFE><HUSBAND>I026</HUSBAND></FAMILY><INDIVIDUAL id="I008"><FAMILY_CHILD>F003</FAMILY_CHILD><NAME><surname>Tudor</surname><forename>Mary</forename></NAME><ALIAS>I</ALIAS><SEX>F</SEX><BIRTH><DATE><day/><month/><year>1516</year></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1558</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><FAMILY_SPOUSE>F006<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F006"><WIFE>I008</WIFE><HUSBAND>I016</HUSBAND><MARRIAGE><DATE><year>1554</year></DATE></MARRIAGE></FAMILY><FAMILY id="F007"><WIFE>I009</WIFE><HUSBAND>I005</HUSBAND><CHILD>I010</CHILD><MARRIAGE><DATE><year>1533</year></DATE></MARRIAGE></FAMILY><INDIVIDUAL id="I009"><SEX>F</SEX><FAMILY_SPOUSE>F007<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Boleyn</surname><forename>Anne</forename></NAME><ALIAS/><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1536</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I010"><FAMILY_CHILD>F007</FAMILY_CHILD><NAME><surname>Tudor</surname><forename>Elizabeth</forename></NAME><ALIAS>I</ALIAS><SEX></SEX><BIRTH><DATE><day></day><month></month><year>1533</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1603</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F008<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F008"/><FAMILY id="F009"><WIFE>I011</WIFE><HUSBAND>I005</HUSBAND><CHILD>I012</CHILD><MARRIAGE><DATE><year>1536</year></DATE></MARRIAGE></FAMILY><INDIVIDUAL id="I011"><SEX>F</SEX><FAMILY_SPOUSE>F009<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Seymour</surname><forename>Jane</forename></NAME><ALIAS></ALIAS><BIRTH><DATE><day></day><month></month><year>1508</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1537</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I012"><FAMILY_CHILD>F009</FAMILY_CHILD><NAME><surname>Tudor</surname><forename>Edward</forename></NAME><ALIAS>VI</ALIAS><SEX></SEX><BIRTH><DATE><day></day><month></month><year>1537</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1553</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F010<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F010"/><FAMILY id="F011"><WIFE>I013</WIFE><HUSBAND>I005</HUSBAND><MARRIAGE><DATE><year>1540</year></DATE></MARRIAGE><DIVORCE><DATE><year>1541</year></DATE></DIVORCE></FAMILY><INDIVIDUAL id="I013"><SEX>F</SEX><FAMILY_SPOUSE>F011<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Anne</forename></NAME><ALIAS>of Cleves</ALIAS><BIRTH><DATE><day></day><month></month><year>1515</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1557</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F012"><WIFE>I014</WIFE><HUSBAND>I005</HUSBAND><MARRIAGE><DATE><year>1541</year></DATE></MARRIAGE></FAMILY><INDIVIDUAL id="I014"><SEX>F</SEX><FAMILY_SPOUSE>F012<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Howard</surname><forename>Katherine</forename></NAME><ALIAS></ALIAS><BIRTH><DATE><day></day><month></month><year>1520</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1542</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F013"><WIFE>I015</WIFE><HUSBAND>I005</HUSBAND><MARRIAGE><DATE><year>1543</year></DATE></MARRIAGE></FAMILY><INDIVIDUAL id="I015"><SEX>F</SEX><FAMILY_SPOUSE>F013<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Parr</surname><forename>Catherine</forename></NAME><ALIAS></ALIAS><BIRTH><DATE><day></day><month></month><year>1512</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1548</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I016"><SEX>M</SEX><FAMILY_SPOUSE>F006<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname/><forename>Philip</forename></NAME><ALIAS>II of Spain</ALIAS><BIRTH><DATE><day/><month/><year>1527</year></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1598</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I017"><SEX>M</SEX><FAMILY_SPOUSE>F004<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>James</forename></NAME><ALIAS>IV of Scotland</ALIAS><BIRTH><DATE><day></day><month></month><year>1473</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1513</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F014"><WIFE>I006</WIFE><HUSBAND>I018</HUSBAND><CHILD>I041</CHILD></FAMILY><INDIVIDUAL id="I018"><SEX>M</SEX><FAMILY_SPOUSE>F014<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Douglas</surname><forename>Archibald</forename></NAME><ALIAS>6th Earl of Angus</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1557</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I019"><FAMILY_CHILD>F004</FAMILY_CHILD><NAME><surname></surname><forename>James</forename></NAME><ALIAS>V of Scotland</ALIAS><SEX>M</SEX><BIRTH><DATE><day></day><month></month><year>1512</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1542</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F015<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE><FAMILY_SPOUSE>F016<NOTE>
+</NOTE></FAMILY_SPOUSE></INDIVIDUAL><FAMILY id="F015"><WIFE>I020</WIFE><HUSBAND>I019</HUSBAND></FAMILY><INDIVIDUAL id="I020"><SEX>F</SEX><FAMILY_SPOUSE>F015<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname/><forename>Madeleine</forename></NAME><ALIAS>of France</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1537</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F016"><WIFE>I021</WIFE><HUSBAND>I019</HUSBAND><CHILD>I022</CHILD></FAMILY><INDIVIDUAL id="I021"><SEX>F</SEX><FAMILY_SPOUSE>F016<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Mary</forename></NAME><ALIAS>of Guise</ALIAS><BIRTH><DATE><day></day><month></month><year>1515</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1560</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I022"><FAMILY_CHILD>F016</FAMILY_CHILD><NAME><surname></surname><forename>Mary</forename></NAME><ALIAS>Queen of Scots</ALIAS><SEX>F</SEX><BIRTH><DATE><day></day><month></month><year>1542</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1587</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F017<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE><FAMILY_SPOUSE>F018<NOTE>
+</NOTE></FAMILY_SPOUSE><FAMILY_SPOUSE>F019<NOTE>
+</NOTE></FAMILY_SPOUSE></INDIVIDUAL><FAMILY id="F017"><WIFE>I022</WIFE><HUSBAND>I023</HUSBAND></FAMILY><INDIVIDUAL id="I023"><SEX>M</SEX><FAMILY_SPOUSE>F017<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Francis</forename></NAME><ALIAS>II of France</ALIAS><BIRTH><DATE><day></day><month></month><year>1544</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1560</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F018"><WIFE>I022</WIFE><HUSBAND>I024</HUSBAND><CHILD>I042</CHILD></FAMILY><INDIVIDUAL id="I024"><SEX>M</SEX><FAMILY_SPOUSE>F018<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Henry</forename></NAME><ALIAS>Lord Darnley</ALIAS><BIRTH><DATE><day></day><month></month><year>1545</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1567</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F019"><WIFE>I022</WIFE><HUSBAND>I025</HUSBAND></FAMILY><INDIVIDUAL id="I025"><SEX>M</SEX><FAMILY_SPOUSE>F019<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>James</forename></NAME><ALIAS>Earl of Bothwell</ALIAS><BIRTH><DATE><day></day><month></month><year></year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1578</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I026"><SEX>M</SEX><FAMILY_SPOUSE>F005<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Louis</forename></NAME><ALIAS>XII of France</ALIAS><BIRTH><DATE><day></day><month></month><year>1462</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1515</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F020"><WIFE>I007</WIFE><HUSBAND>I027</HUSBAND><CHILD>I028</CHILD></FAMILY><INDIVIDUAL id="I027"><SEX>M</SEX><FAMILY_SPOUSE>F020<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Brandon</surname><forename>Charles</forename></NAME><ALIAS>Dike of Suffolk</ALIAS><BIRTH><DATE><day></day><month></month><year>1484</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1545</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I028"><FAMILY_CHILD>F020</FAMILY_CHILD><NAME><surname>Brandon</surname><forename>Frances</forename></NAME><ALIAS></ALIAS><SEX>F</SEX><BIRTH><DATE><day></day><month></month><year>1517</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1559</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F021<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F021"><WIFE>I028</WIFE><HUSBAND>I029</HUSBAND><CHILD>I030</CHILD><CHILD>I031</CHILD></FAMILY><INDIVIDUAL id="I029"><SEX>M</SEX><FAMILY_SPOUSE>F021<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Grey</surname><forename>Henry</forename></NAME><ALIAS>Marquess of Dorset and Duke of Suffolk</ALIAS><BIRTH><DATE><day></day><month></month><year>1517</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1554</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I030"><FAMILY_CHILD>F021</FAMILY_CHILD><NAME><surname>Grey</surname><forename>Lady Jane</forename></NAME><ALIAS></ALIAS><SEX>F</SEX><BIRTH><DATE><day></day><month></month><year>1537</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1554</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F022<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F022"><WIFE>I030</WIFE><HUSBAND>I044</HUSBAND></FAMILY><INDIVIDUAL id="I031"><FAMILY_CHILD>F021</FAMILY_CHILD><NAME><surname>Grey</surname><forename>Catherine</forename></NAME><ALIAS/><SEX>F</SEX><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1568</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><FAMILY_SPOUSE>F023<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F023"><WIFE>I031</WIFE><HUSBAND>I032</HUSBAND></FAMILY><INDIVIDUAL id="I032"><SEX>M</SEX><FAMILY_SPOUSE>F023<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Seymour</surname><forename>Edward</forename></NAME><ALIAS>Earl of Hertford</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1621</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I033"><SEX>M</SEX><FAMILY_SPOUSE>F024<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Tudor</surname><forename>Edmund</forename></NAME><ALIAS>Earl of Richmond</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1456</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F024"><CHILD>I001</CHILD><HUSBAND>I033</HUSBAND><WIFE>I034</WIFE></FAMILY><INDIVIDUAL id="I034"><SEX>F</SEX><FAMILY_SPOUSE>F024<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Beaufort</surname><forename>Margaret</forename></NAME><ALIAS/><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1509</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><FAMILY_CHILD>F025</FAMILY_CHILD><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I035"><NAME><surname>Beaufort</surname><forename>John</forename></NAME><SEX>M</SEX><FAMILY_SPOUSE>F025<NOTE>
+</NOTE></FAMILY_SPOUSE><ALIAS>Duke of Somerset</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1444</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE><FAMILY_CHILD>F026</FAMILY_CHILD></INDIVIDUAL><FAMILY id="F025"><CHILD>I034</CHILD><HUSBAND>I035</HUSBAND><WIFE>I036</WIFE></FAMILY><INDIVIDUAL id="I036"><SEX>F</SEX><FAMILY_SPOUSE>F025<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname/><forename>Margaret</forename></NAME><ALIAS>of Bletso</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1482</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I037"><NAME><surname>Beaufort</surname><forename>John</forename></NAME><SEX>M</SEX><FAMILY_SPOUSE>F026<NOTE>
+</NOTE></FAMILY_SPOUSE><ALIAS>Marquess of Somerset</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1410</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE><FAMILY_CHILD>F027</FAMILY_CHILD></INDIVIDUAL><FAMILY id="F026"><CHILD>I035</CHILD><HUSBAND>I037</HUSBAND><WIFE>I038</WIFE></FAMILY><INDIVIDUAL id="I038"><SEX>F</SEX><FAMILY_SPOUSE>F026<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Holland</surname><forename>Margaret</forename></NAME><ALIAS/><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1439</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I039"><NAME><surname>Beaufort</surname><forename>John</forename></NAME><SEX>M</SEX><FAMILY_SPOUSE>F027<NOTE>
+</NOTE></FAMILY_SPOUSE><ALIAS>of Gaunt (3rd son of Edward II) Duke of Lancaster</ALIAS><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1399</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F027"><CHILD>I037</CHILD><HUSBAND>I039</HUSBAND><WIFE>I040</WIFE></FAMILY><INDIVIDUAL id="I040"><SEX>F</SEX><FAMILY_SPOUSE>F027<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname>Swynford</surname><forename>Katherine</forename></NAME><ALIAS/><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year>1403</year></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I041"><FAMILY_CHILD>F014</FAMILY_CHILD><NAME><surname>Douglas</surname><forename>Margaret</forename></NAME><ALIAS/><SEX/><BIRTH><DATE><day/><month/><year/></DATE><PLACE/></BIRTH><DEATH><DATE><day/><month/><year/></DATE><PLACE/></DEATH><BURIAL><PLACE/></BURIAL><FAMILY_SPOUSE>F028<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F028"/><INDIVIDUAL id="I042"><FAMILY_CHILD>F018</FAMILY_CHILD><NAME><surname></surname><forename>James</forename></NAME><ALIAS>VI of Scotland, I of England</ALIAS><SEX>M</SEX><BIRTH><DATE><day></day><month></month><year>1566</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1625</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><FAMILY_SPOUSE>F029<NOTE>
+</NOTE></FAMILY_SPOUSE><NOTE>
+</NOTE></INDIVIDUAL><FAMILY id="F029"><WIFE>I043</WIFE><HUSBAND>I042</HUSBAND><MARRIAGE><DATE><year>1589</year></DATE></MARRIAGE></FAMILY><INDIVIDUAL id="I043"><SEX>F</SEX><FAMILY_SPOUSE>F029<NOTE>
+</NOTE></FAMILY_SPOUSE><NAME><surname></surname><forename>Anne</forename></NAME><ALIAS>of Denmark</ALIAS><BIRTH><DATE><day></day><month></month><year>1574</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1619</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL><NOTE>
+</NOTE></INDIVIDUAL><INDIVIDUAL id="I044"><SEX>M</SEX><FAMILY_SPOUSE>F022</FAMILY_SPOUSE><NAME><surname>Dudley</surname><forename>Guildford</forename></NAME><ALIAS></ALIAS><BIRTH><DATE><day></day><month></month><year>1534</year></DATE><PLACE></PLACE></BIRTH><DEATH><DATE><day></day><month></month><year>1554</year></DATE><PLACE></PLACE></DEATH><BURIAL><PLACE></PLACE></BURIAL></INDIVIDUAL></FamilyTree>

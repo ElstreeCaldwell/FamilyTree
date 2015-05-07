@@ -24,7 +24,8 @@ import tkFileDialog
 from lxml import etree as ET
 
 from Tkinter import *
-import ttk
+from ttk import *
+
 # from ImageTk import PhotoImage
 
 import Dialogs
@@ -137,18 +138,18 @@ class FamilyTab:
 
     def CreateWidgets(self):
 
-        self.familyFrame = ttk.Frame( self.parent, style='My.TFrame' )
+        self.familyFrame = Frame( self.parent, style='My.TFrame' )
         self.familyFrame.grid( row=1, column=1, sticky=N+E+W )
 
         iRow = 1
         iCol = self.familyColumn
 
         # Spouse
-        self.labelID = ttk.Label(self.familyFrame, text='Spouse:', anchor=W, justify=LEFT)
+        self.labelID = Label(self.familyFrame, text='Spouse:', anchor=W, justify=LEFT)
         self.labelID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         # Add Spouse
-        self.buttonAddSpouse = ttk.Button(self.familyFrame)
+        self.buttonAddSpouse = Button(self.familyFrame)
         self.buttonAddSpouse.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
 
         #self.UpdateSpouseButtonAdd()
@@ -156,7 +157,7 @@ class FamilyTab:
         iRow = iRow + 1
  
         # Remove Spouse
-        self.buttonRemoveSpouse = ttk.Button(self.familyFrame)
+        self.buttonRemoveSpouse = Button(self.familyFrame)
         self.buttonRemoveSpouse['text'] = 'Remove Spouse'
         self.buttonRemoveSpouse['command'] =  self.OnRemoveSpouse
 
@@ -165,29 +166,29 @@ class FamilyTab:
         iRow = iRow + 1
 
         # Empty
-        self.labelEmpty4 = ttk.Label( self.familyFrame )
+        self.labelEmpty4 = Label( self.familyFrame )
         self.labelEmpty4.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
  
         # Married Date
-        self.labelMarried = ttk.Label(self.familyFrame, text='Married:', anchor=W, justify=LEFT)
+        self.labelMarried = Label(self.familyFrame, text='Married:', anchor=W, justify=LEFT)
         self.labelMarried.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.optionSelectedMarriedDay = ttk.OptionMenu( self.familyFrame, self.varSelectedMarriedDay, *self.days )
+        self.optionSelectedMarriedDay = OptionMenu( self.familyFrame, self.varSelectedMarriedDay, *self.days )
         self.optionSelectedMarriedDay.bind( '<<ListboxSelect>>', self.OnMarriedDayOptionSelect )
 
         self.optionSelectedMarriedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedMarriedDay.trace( "w", self.OnMarriedDayOptionSelect )
 
-        self.optionSelectedMarriedMonth = ttk.OptionMenu( self.familyFrame, self.varSelectedMarriedMonth, *self.months )
+        self.optionSelectedMarriedMonth = OptionMenu( self.familyFrame, self.varSelectedMarriedMonth, *self.months )
         self.optionSelectedMarriedMonth.bind( '<<ListboxSelect>>', self.OnMarriedMonthOptionSelect )
 
         self.optionSelectedMarriedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
         self.varSelectedMarriedMonth.trace( "w", self.OnMarriedMonthOptionSelect )
 
         self.entrySelectedMarriedYear = \
-            ttk.Entry(self.familyFrame, textvariable=self.varSelectedMarriedYear, width=4)
+            Entry(self.familyFrame, textvariable=self.varSelectedMarriedYear, width=4)
 
         self.entrySelectedMarriedYear.grid( row=iRow, rowspan=1,
                                                  column=iCol+3, columnspan=2, sticky=N+S+E+W )
@@ -195,11 +196,11 @@ class FamilyTab:
 
         iRow = iRow + 1
 
-        self.labelMarriedPlace = ttk.Label(self.familyFrame, text='Location:', anchor=W, justify=RIGHT)
+        self.labelMarriedPlace = Label(self.familyFrame, text='Location:', anchor=W, justify=RIGHT)
         self.labelMarriedPlace.grid(row=iRow, column=iCol+1, columnspan=1, sticky=W)
 
         self.entrySelectedMarriedPlace = \
-            ttk.Entry(self.familyFrame, textvariable=self.varSelectedMarriedPlace)
+            Entry(self.familyFrame, textvariable=self.varSelectedMarriedPlace)
 
         self.entrySelectedMarriedPlace.grid( row=iRow, rowspan=1,
                                           column=iCol+2, columnspan=3, sticky=N+S+E+W )
@@ -208,23 +209,23 @@ class FamilyTab:
         iRow = iRow + 1
 
         # Divorced Date
-        self.labelDivorced = ttk.Label(self.familyFrame, text='Divorced:', anchor=W, justify=LEFT)
+        self.labelDivorced = Label(self.familyFrame, text='Divorced:', anchor=W, justify=LEFT)
         self.labelDivorced.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
-        self.optionSelectedDivorcedDay = ttk.OptionMenu( self.familyFrame, self.varSelectedDivorcedDay, *self.days )
+        self.optionSelectedDivorcedDay = OptionMenu( self.familyFrame, self.varSelectedDivorcedDay, *self.days )
         self.optionSelectedDivorcedDay.bind( '<<ListboxSelect>>', self.OnDivorcedDayOptionSelect )
 
         self.optionSelectedDivorcedDay.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDivorcedDay.trace( "w", self.OnDivorcedDayOptionSelect )
 
-        self.optionSelectedDivorcedMonth = ttk.OptionMenu( self.familyFrame, self.varSelectedDivorcedMonth, *self.months )
+        self.optionSelectedDivorcedMonth = OptionMenu( self.familyFrame, self.varSelectedDivorcedMonth, *self.months )
         self.optionSelectedDivorcedMonth.bind( '<<ListboxSelect>>', self.OnDivorcedMonthOptionSelect )
 
         self.optionSelectedDivorcedMonth.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1, sticky=N+S+E+W )
         self.varSelectedDivorcedMonth.trace( "w", self.OnDivorcedMonthOptionSelect )
 
         self.entrySelectedDivorcedYear = \
-            ttk.Entry(self.familyFrame, textvariable=self.varSelectedDivorcedYear, width=4)
+            Entry(self.familyFrame, textvariable=self.varSelectedDivorcedYear, width=4)
 
         self.entrySelectedDivorcedYear.grid( row=iRow, rowspan=1,
                                              column=iCol+3, columnspan=2, sticky=N+S+E+W )
@@ -233,7 +234,7 @@ class FamilyTab:
         iRow = iRow + 1
 
         # Empty
-        self.labelEmpty5 = ttk.Label( self.familyFrame )
+        self.labelEmpty5 = Label( self.familyFrame )
         self.labelEmpty5.grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
 
         iRow = iRow + 1
@@ -245,7 +246,7 @@ class FamilyTab:
 
         iCol = self.familyColumn
 
-        self.labelFamilyNote = ttk.Label(self.familyFrame, text='Family Notes:', anchor=NW, justify=LEFT)
+        self.labelFamilyNote = Label(self.familyFrame, text='Family Notes:', anchor=NW, justify=LEFT)
         self.labelFamilyNote.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
 
         self.FamilyNoteScrollbarY = Scrollbar(self.familyFrame, orient=VERTICAL)
@@ -280,7 +281,7 @@ class FamilyTab:
         iRow = iRow + nRows + 2
 
         # Add child
-        self.buttonAddChild = ttk.Button(self.familyFrame)
+        self.buttonAddChild = Button(self.familyFrame)
         self.buttonAddChild['text'] = 'Add Child'
         self.buttonAddChild['command'] = self.OnAddChild
 
@@ -289,7 +290,7 @@ class FamilyTab:
         iRow = iRow + 1
 
         # Remove child
-        self.buttonRemoveChild = ttk.Button(self.familyFrame)
+        self.buttonRemoveChild = Button(self.familyFrame)
         self.buttonRemoveChild['text'] = 'Remove Child'
         self.buttonRemoveChild['command'] = self.OnRemoveChild
 
@@ -301,7 +302,7 @@ class FamilyTab:
 
         # Empty
         nRows = 12
-        self.labelEmpty6 = ttk.Label( self.familyFrame )
+        self.labelEmpty6 = Label( self.familyFrame )
         self.labelEmpty6.grid( row=iRow, rowspan=nRows, column=iCol, columnspan=1 )
 
 
@@ -311,7 +312,7 @@ class FamilyTab:
 
     def CreateChildrenListbox(self, nColumns, nRows, column, row):
 
-        self.labelChildren = ttk.Label(self.familyFrame, text='Children')
+        self.labelChildren = Label(self.familyFrame, text='Children')
         self.labelChildren.grid(row=row, column=column,
                                columnspan=nColumns, sticky=N+S)
 

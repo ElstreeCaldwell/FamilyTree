@@ -35,7 +35,8 @@ import tkFileDialog
 from lxml import etree as ET
 
 from Tkinter import *
-import ttk
+from ttk import *
+
 # from ImageTk import PhotoImage
 
 import FamilyTreeGraph as FTG
@@ -675,7 +676,7 @@ class Application( Frame ):
 
         self.familyColumn = iCol
         
-        self.notebookFamilies = ttk.Notebook( self.master, name='families' )
+        self.notebookFamilies = Notebook( self.master, name='families' )
         self.notebookFamilies.grid(row=0, rowspan=12, column=iCol, sticky=N+S+E+W)
 
         self.notebookTabChangedFnID = self.notebookFamilies.bind_all( "<<NotebookTabChanged>>",
@@ -842,7 +843,7 @@ class Application( Frame ):
         mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
 
         if ( father is not None ):
-            self.ChangeSubject( self.ftGraph.GetIndividualID( father ) )
+            self.ChangeSubject( self.ftGraph.GetIndividualID( father ), idFamilyChild )
 
 
     # --------------------------------------------------------------------
@@ -918,7 +919,7 @@ class Application( Frame ):
         mother, father, idFamilyChild = self.ftGraph.GetParents( theIndividual )
 
         if ( mother is not None ):
-            self.ChangeSubject( self.ftGraph.GetIndividualID( mother ) )
+            self.ChangeSubject( self.ftGraph.GetIndividualID( mother ), idFamilyChild )
 
     # --------------------------------------------------------------------
     # OnRemoveFather
