@@ -535,7 +535,33 @@ class FamilyTreeXML( object ):
 
 
     # ----------------------------------------------------------------------
-    def GetSubjectsFamilyMembers( self, ftInputXML, idInputIndividual=None ):
+    def CollateSubjectsSiblings( self, ftInputXML, idInputIndividual=None ):
+
+        if ( idInputIndividual is None ):
+            idInputIndividual = self.idIndividual
+            
+        eIndividual = self.GetIndividual( idInputIndividual )        
+
+        idFamilyChild  = eIndividual.findtext('FAMILY_CHILD')
+
+        if ( idFamilyChild ):
+
+            for family in self.GetFamilyWithID( idFamilyChild ):
+
+                for idSibling in family.findall( 'CHILD' ):
+
+                    if ( idInputIndividual != idSibling.text ):
+
+                        eSibling = self.GetIndividualWithID( idSibling.text )
+
+                        if ( eSibling is not None ):
+                             self.AppendIndividual( eSibling, ftInputXML )
+                            
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def CollateSubjectsFamilyMembers( self, ftInputXML, idInputIndividual=None ):
 
         if ( idInputIndividual is None ):
             idInputIndividual = self.idIndividual
@@ -549,7 +575,10 @@ class FamilyTreeXML( object ):
 
         sex = eIndividual.findtext('SEX')
 
+        # Siblings
 
+        self.CollateSubjectsSiblings( ftInputXML, idInputIndividual )
+            
         # Parents
 
         eMother, eFather, idFamilyChild = self.GetParents( eIndividual )
@@ -602,7 +631,7 @@ class FamilyTreeXML( object ):
 
 
     # ----------------------------------------------------------------------
-    def GetSubjectsAncestors( self, ftInputXML, idInputIndividual=None ):
+    def CollateSubjectsAncestors( self, ftInputXML, idInputIndividual=None, flgIncludeSiblings=False ):
 
         if ( idInputIndividual is None ):
             idInputIndividual = self.idIndividual
@@ -616,6 +645,10 @@ class FamilyTreeXML( object ):
 
         sex = eIndividual.findtext('SEX')
 
+        # Siblings?
+
+        if ( flgIncludeSiblings ):
+            self.CollateSubjectsSiblings( ftInputXML, idInputIndividual )
 
         # Parents
 
@@ -627,17 +660,17 @@ class FamilyTreeXML( object ):
 
         if ( not eMother is None ):
 
-            self.GetSubjectsAncestors( ftInputXML, eMother.attrib['id'] )
+            self.CollateSubjectsAncestors( ftInputXML, eMother.attrib['id'], flgIncludeSiblings )
 
         if ( not eFather is None ):
 
-            self.GetSubjectsAncestors( ftInputXML, eFather.attrib['id'] )
+            self.CollateSubjectsAncestors( ftInputXML, eFather.attrib['id'], flgIncludeSiblings )
 
     # ----------------------------------------------------------------------
 
 
     # ----------------------------------------------------------------------
-    def GetSubjectsDescendents( self, ftInputXML, idInputIndividual=None ):
+    def CollateSubjectsDescendents( self, ftInputXML, idInputIndividual=None, flgIncludeSiblings=False ):
 
         if ( idInputIndividual is None ):
             idInputIndividual = self.idIndividual
@@ -650,6 +683,11 @@ class FamilyTreeXML( object ):
         self.AppendIndividual( eIndividual, ftInputXML )
 
         sex = eIndividual.findtext('SEX')
+
+        # Siblings?
+
+        if ( flgIncludeSiblings ):
+            self.CollateSubjectsSiblings( ftInputXML, idInputIndividual )
 
 
         # Families
@@ -682,7 +720,7 @@ class FamilyTreeXML( object ):
 
                     if ( not eChild is None ):
 
-                        self.GetSubjectsDescendents( ftInputXML, idChild.text )
+                        self.CollateSubjectsDescendents( ftInputXML, idChild.text, flgIncludeSiblings )
 
     # ----------------------------------------------------------------------
 
