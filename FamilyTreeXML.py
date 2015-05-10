@@ -729,6 +729,44 @@ class FamilyTreeXML( object ):
 
 
         return eFamily
+   # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def DeleteFamily( self, idFamily ):
+
+        if ( not idFamily is None ):
+
+            for family in self.GetFamilyWithID( idFamily ):
+
+                print 'DeleteFamily: Deleting family', idFamily
+                ET.dump( family )
+                self.ftXML.remove( family )
+
+            for individual in self.GetIndividuals():
+
+                print '\nDeleteFamily: Individual'
+                ET.dump( individual )
+
+                families = individual.findall('FAMILY_SPOUSE')
+
+                for family in families:
+
+                    if ( family.text == idFamily ):
+                        print 'DeleteFamily: Deleting spouse', family.text
+                        ET.dump( family )
+                        individual.remove( family )
+
+                families = individual.findall('FAMILY_CHILD')
+
+                for family in families:
+
+                    if ( family.text == idFamily ):
+                        print 'DeleteFamily: Deleting child', family.text
+                        ET.dump( family )
+                        individual.remove( family )
+
+
     # ----------------------------------------------------------------------
 
 

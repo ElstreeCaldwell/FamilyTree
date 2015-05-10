@@ -423,12 +423,6 @@ class Application( Frame ):
                                          sticky=N+S+E+W )
         self.varSelectedSearch.trace( "w", self.OnSearchEdited )
 
-        iRow = iRow + 1
-
-        # Empty
-        self.labelEmpty.append( Label( self ) )
-        self.labelEmpty[-1].grid( row=iRow, rowspan=1, padx=5, column=iCol, columnspan=1 )
-
 
         iRow = 0
         iCol = iCol + 3
@@ -447,18 +441,6 @@ class Application( Frame ):
             Label(self, textvariable=self.varSelectedID, anchor=W, justify=LEFT)
 
         self.labelSelectedID.grid( row=iRow, rowspan=1, column=iCol+2, columnspan=1,
-                                   sticky=N+S+E+W )
-
-        iRow = iRow + 1
-
-        # FamilyChild
-        self.labelFamilyChildID = Label(self, text='Child of Family:', anchor=W, justify=LEFT)
-        self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
-
-        self.labelSelectedFamilyChildID = \
-            Label(self, textvariable=self.varSelectedFamilyChildID, anchor=W, justify=LEFT)
-
-        self.labelSelectedFamilyChildID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
                                    sticky=N+S+E+W )
 
         iRow = iRow + 1
@@ -513,12 +495,29 @@ class Application( Frame ):
         self.optionSelectedSex.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1, sticky=N+S+E+W )
         self.varSelectedSex.trace( "w", self.OnSexOptionSelect )
 
+        iRow = iRow + 1
+
+        # Empty
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, column=iCol, columnspan=1 )
+
+        iRow = iRow + 1
+
         # New Family
         self.buttonNewFamily = Button(self)
         self.buttonNewFamily['text'] = 'New Family'
         self.buttonNewFamily['command'] = self.OnNewFamily
 
-        self.buttonNewFamily.grid(row=iRow, column=iCol+2, rowspan=1, columnspan=3, sticky=N+S+E+W)
+        self.buttonNewFamily.grid(row=iRow, column=iCol+1, rowspan=1, columnspan=4, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
+        # Delete Family
+        self.buttonDeleteFamily = Button(self)
+        self.buttonDeleteFamily['text'] = 'Delete Family'
+        self.buttonDeleteFamily['command'] = self.OnDeleteFamily
+
+        self.buttonDeleteFamily.grid(row=iRow, column=iCol+1, rowspan=1, columnspan=4, sticky=N+S+E+W)
 
         iRow = iRow + 1
 
@@ -620,6 +619,18 @@ class Application( Frame ):
 
         iRow = iRow + 1
  
+        # FamilyChild
+        self.labelFamilyChildID = Label(self, text='Child of Family:', anchor=W, justify=LEFT)
+        self.labelFamilyChildID.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
+
+        self.labelSelectedFamilyChildID = \
+            Label(self, textvariable=self.varSelectedFamilyChildID, anchor=W, justify=LEFT)
+
+        self.labelSelectedFamilyChildID.grid( row=iRow, rowspan=1, column=iCol+1, columnspan=1,
+                                   sticky=N+S+E+W )
+
+        iRow = iRow + 1
+
         # Father
         self.labelFather = Label(self, text='Father:', anchor=W, justify=LEFT)
         self.labelFather.grid(row=iRow, column=iCol, columnspan=1, sticky=W)
@@ -701,6 +712,12 @@ class Application( Frame ):
         self.buttonDeleteSubject['command'] = self.OnDeleteSubject
 
         self.buttonDeleteSubject.grid(row=iRow, column=iCol+1, columnspan=4, sticky=N+S+E+W)
+
+        iRow = iRow + 1
+
+        # Empty
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, padx=5, column=iCol, columnspan=1 )
 
 
         # The Family tabs
@@ -1445,6 +1462,35 @@ class Application( Frame ):
             self.idSelectedFamilySpouse = family.attrib['id']
 
             self.UpdateFamily()
+
+
+    # --------------------------------------------------------------------
+    # OnDeleteFamily
+    # --------------------------------------------------------------------
+
+    def OnDeleteFamily( self ):
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+        if ( not self.idSelectedFamilySpouse is None ):
+
+            if ( tkMessageBox.askyesno( "Delete",
+                                        "Delete family " + self.idSelectedFamilySpouse +
+                                        " and corresponding relationships ?",
+                                        default='yes' ) and
+                 tkMessageBox.askyesno( "Delete", "Are you sure you want to delete family "
+                                        + self.idSelectedFamilySpouse + " ?",
+                                        default='no' ) ):
+
+                self.ftGraph.DeleteFamily( self.idSelectedFamilySpouse )
+                self.idSelectedFamilySpouse = theIndividual.findtext('FAMILY_SPOUSE')
+
+                if ( self.idSelectedFamilySpouse is None ):
+
+                    family = self.ftGraph.CreateFamily( theIndividual )
+                    self.idSelectedFamilySpouse = family.attrib['id']
+
+                self.UpdateFamily()
 
 
     # --------------------------------------------------------------------
