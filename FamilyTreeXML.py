@@ -20,6 +20,7 @@
 
 import sys
 import xml.etree.ElementTree as ET
+from copy import deepcopy
 
 
 # ========================================================================
@@ -137,6 +138,36 @@ class FamilyTreeXML( object ):
                 label = surname + ' ' + label
 
         return label
+
+
+    # ----------------------------------------------------------------------
+    def GetNameAsSingleString(self, individual):
+
+        label = ''
+
+        idIndividual = individual.attrib['id']
+
+        forename = self.GetForename( individual ).title()
+        surname  = self.GetSurname( individual ).title()
+        alias  = self.GetAlias( individual )
+
+        if ( ( not surname is None ) and ( len( surname ) != 0 ) ):
+
+            label = surname
+
+        if ( ( not forename is None ) and ( len( forename ) != 0 ) ):
+
+            label = label + forename
+
+        if ( ( not alias is None ) and ( len( alias ) != 0 ) ):
+
+            label = label + alias
+
+        if ( len( label ) == 0 ):
+
+            label = idIndividual
+
+        return label.replace( ' ', '' )
 
 
     # ----------------------------------------------------------------------
@@ -499,6 +530,159 @@ class FamilyTreeXML( object ):
                             siblings.append( individualSibling )
 
         return ( siblings, idFamilyChild )
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def GetSubjectsFamilyMembers( self, ftInputXML, idInputIndividual=None ):
+
+        if ( idInputIndividual is None ):
+            idInputIndividual = self.idIndividual
+            
+        eIndividual = self.GetIndividual( idInputIndividual )        
+
+        if ( eIndividual is None ):
+            return
+
+        self.AppendIndividual( eIndividual, ftInputXML )
+
+        sex = eIndividual.findtext('SEX')
+
+
+        # Parents
+
+        eMother, eFather, idFamilyChild = self.GetParents( eIndividual )
+
+        if ( not eMother is None ):
+
+            self.AppendIndividual( eMother, ftInputXML )
+
+        if ( not eFather is None ):
+
+            self.AppendIndividual( eFather, ftInputXML )
+
+        for eFamilyChild in self.GetFamilyWithID( idFamilyChild ):
+
+            self.AppendFamily( eFamilyChild, ftInputXML )
+
+        # Families
+
+        idFamilies = eIndividual.findall('FAMILY_SPOUSE')
+
+        for idFamily in idFamilies:
+
+            for eFamily in self.GetFamilyWithID( idFamily.text ):
+
+                self.AppendFamily( eFamily, ftInputXML )
+
+                # Spouse
+                
+                if ( sex == 'M' ):
+                    idSpouse = eFamily.findtext('WIFE')
+                else:
+                    idSpouse = eFamily.findtext('HUSBAND')
+
+                if ( not idSpouse is None ):
+                    eSpouse = self.GetIndividual( idSpouse ) 
+
+                    self.AppendIndividual( eSpouse, ftInputXML )
+
+                # Children
+
+                for idChild in eFamily.findall( 'CHILD' ):
+
+                    eChild = self.GetIndividual( idChild.text ) 
+
+                    if ( not eChild is None ):
+
+                        self.AppendIndividual( eChild, ftInputXML )
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def GetSubjectsAncestors( self, ftInputXML, idInputIndividual=None ):
+
+        if ( idInputIndividual is None ):
+            idInputIndividual = self.idIndividual
+
+        eIndividual = self.GetIndividual( idInputIndividual )        
+
+        if ( eIndividual is None ):
+            return
+        
+        self.AppendIndividual( eIndividual, ftInputXML )
+
+        sex = eIndividual.findtext('SEX')
+
+
+        # Parents
+
+        eMother, eFather, idFamilyChild = self.GetParents( eIndividual )
+
+        for eFamilyChild in self.GetFamilyWithID( idFamilyChild ):
+
+            self.AppendFamily( eFamilyChild, ftInputXML )
+
+        if ( not eMother is None ):
+
+            self.GetSubjectsAncestors( ftInputXML, eMother.attrib['id'] )
+
+        if ( not eFather is None ):
+
+            self.GetSubjectsAncestors( ftInputXML, eFather.attrib['id'] )
+
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
+    def GetSubjectsDescendents( self, ftInputXML, idInputIndividual=None ):
+
+        if ( idInputIndividual is None ):
+            idInputIndividual = self.idIndividual
+
+        eIndividual = self.GetIndividual( idInputIndividual )        
+
+        if ( eIndividual is None ):
+            return
+
+        self.AppendIndividual( eIndividual, ftInputXML )
+
+        sex = eIndividual.findtext('SEX')
+
+
+        # Families
+
+        idFamilies = eIndividual.findall('FAMILY_SPOUSE')
+
+        for idFamily in idFamilies:
+
+            for eFamily in self.GetFamilyWithID( idFamily.text ):
+
+                self.AppendFamily( eFamily, ftInputXML )
+
+                # Spouse
+                
+                if ( sex == 'M' ):
+                    idSpouse = eFamily.findtext('WIFE')
+                else:
+                    idSpouse = eFamily.findtext('HUSBAND')
+
+                if ( not idSpouse is None ):
+                    eSpouse = self.GetIndividual( idSpouse ) 
+
+                    self.AppendIndividual( eSpouse, ftInputXML )
+
+                # Children
+
+                for idChild in eFamily.findall( 'CHILD' ):
+
+                    eChild = self.GetIndividual( idChild.text ) 
+
+                    if ( not eChild is None ):
+
+                        self.GetSubjectsDescendents( ftInputXML, idChild.text )
 
     # ----------------------------------------------------------------------
 
@@ -1570,3 +1754,53 @@ class FamilyTreeXML( object ):
                 eFamilyChild = theChild.find('FAMILY_CHILD')
 
                 theChild.remove( eFamilyChild )
+
+
+    # ----------------------------------------------------------------------
+    def AppendIndividual( self, newIndividual, ftInputXML=None ):
+
+        if ( ftInputXML is None ):
+            ftInputXML = self.ftXML
+
+        individuals = ftInputXML.findall( 'INDIVIDUAL' )
+
+        if ( individuals is None ):
+            ftInputXML.append( deepcopy( newIndividual ) )
+            return
+
+        idNewIndividual = newIndividual.attrib['id']
+
+        flgFound = False
+        for individual in individuals:
+
+            if ( individual.attrib['id'] == idNewIndividual ):
+                flgFound = True
+                break
+
+        if ( not flgFound ):
+            ftInputXML.append( deepcopy( newIndividual ) )
+
+    # ----------------------------------------------------------------------
+    def AppendFamily( self, newFamily, ftInputXML=None ):
+
+        if ( ftInputXML is None ):
+            ftInputXML = self.ftXML
+
+        families = ftInputXML.findall( 'FAMILY' )
+
+        if ( families is None ):
+            ftInputXML.append( deepcopy( newFamily ) )
+            return
+
+        idNewFamily = newFamily.attrib['id']
+
+        flgFound = False
+        for family in families:
+
+            if ( family.attrib['id'] == idNewFamily ):
+                flgFound = True
+                break
+
+        if ( not flgFound ):
+            ftInputXML.append( deepcopy( newFamily ) )
+

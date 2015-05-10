@@ -104,19 +104,28 @@ class Application( Frame ):
 
     def SetHeader(self, fileOutXML):
 
-        if ( self.ftXML is None ):
-            self.ftXML = ET.Element( 'FamilyTree' )
+        self.ftXML, self.etXML = self.CreateHeader( fileOutXML, self.ftXML, self.etXML )
 
-        if ( self.etXML is None ):
-            self.etXML = ET.ElementTree( self.ftXML )
+        
+    # --------------------------------------------------------------------
+    #  CreateHeader()
+    # --------------------------------------------------------------------
 
-        if ( self.ftXML.tag != 'FamilyTree' ):
-            self.ftXML.tag = 'FamilyTree'
+    def CreateHeader(self, fileOutXML, ftXML=None, etXML=None):
 
-        eHeader = self.ftXML.find( 'HEADER' )
+        if ( ftXML is None ):
+            ftXML = ET.Element( 'FamilyTree' )
+
+        if ( etXML is None ):
+            etXML = ET.ElementTree( ftXML )
+
+        if ( ftXML.tag != 'FamilyTree' ):
+            ftXML.tag = 'FamilyTree'
+
+        eHeader = ftXML.find( 'HEADER' )
 
         if ( eHeader is None ):
-            eHeader = ET.SubElement( self.ftXML, 'HEADER' )
+            eHeader = ET.SubElement( ftXML, 'HEADER' )
 
 
         eDestination = eHeader.find( 'DESTINATION' )
@@ -200,6 +209,8 @@ class Application( Frame ):
                 eFile = ET.SubElement( eHeader, 'FILE' )
 
             eFile.text = fileOutXML
+
+        return ( ftXML, etXML )
 
 
     # --------------------------------------------------------------------
@@ -318,6 +329,20 @@ class Application( Frame ):
 
         fileMenu.add_separator()
 
+        fileMenu.add_command( label="Export Subject's Immediate Family",
+                              underline=0, command=self.OnExportSubjectFamily )
+
+        fileMenu.add_command( label="Export Subject's Family Tree",
+                              underline=0, command=self.OnExportSubjectTree )
+
+        fileMenu.add_command( label="Export Tree of Subject's Ancestors",
+                              underline=0, command=self.OnExportAncestors )
+
+        fileMenu.add_command( label="Export Tree of Subject's Descendents",
+                              underline=0, command=self.OnExportDescendents )
+
+        fileMenu.add_separator()
+
         fileMenu.add_command(label="Quit", underline=0, command=self.OnQuit)
 
         menubar.add_cascade(label="File", underline=0, menu=fileMenu)
@@ -397,6 +422,12 @@ class Application( Frame ):
         self.entrySelectedSearch.grid( row=iRow, rowspan=1, column=iCol, columnspan=2,
                                          sticky=N+S+E+W )
         self.varSelectedSearch.trace( "w", self.OnSearchEdited )
+
+        iRow = iRow + 1
+
+        # Empty
+        self.labelEmpty.append( Label( self ) )
+        self.labelEmpty[-1].grid( row=iRow, rowspan=1, padx=5, column=iCol, columnspan=1 )
 
 
         iRow = 0
@@ -759,10 +790,13 @@ class Application( Frame ):
         sender = val.widget
 
         idx = sender.curselection()
-        value = sender.get(idx)
 
-        self.ChangeSubject( re.search( 'I\d\d\d$', value ).group( 0 ) )
+        try:
+            value = sender.get(idx)
+            self.ChangeSubject( re.search( 'I\d\d\d$', value ).group( 0 ) )
 
+        except TclError:
+            pass
 
     # --------------------------------------------------------------------
     # OnAddFather
@@ -821,7 +855,11 @@ class Application( Frame ):
             sender = val.widget
             idx = sender.curselection()
 
-            self.idSelectedFather = sender.get(idx)
+            try:
+                self.idSelectedFather = sender.get(idx)
+
+            except TclError:
+                pass
 
 
     # --------------------------------------------------------------------
@@ -897,7 +935,11 @@ class Application( Frame ):
             sender = val.widget
             idx = sender.curselection()
 
-            self.idSelectedMother = sender.get(idx)
+            try:
+                self.idSelectedMother = sender.get(idx)
+
+            except TclError:
+                pass
 
 
     # --------------------------------------------------------------------
@@ -1418,15 +1460,20 @@ class Application( Frame ):
         options['parent'] = self
         options['title'] = 'Open Family Tree Data'
 
-        self.fileInXML = tkFileDialog.askopenfilename( **options )
+        filename = tkFileDialog.askopenfilename( **options )
 
-        print 'Opening tree data file:', self.fileInXML
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
 
-        self.ftXML = ET.parse( self.fileInXML ).getroot()
-        self.ftGraph = FTG.FamilyTreeGraph( self.ftXML )
+            print 'Opening tree data file:', filename
 
-        self.UpdateSelectedSubject()
-        self.UpdateSubjectListboxItems( True )
+            self.ftXML = ET.parse( filename ).getroot()
+            self.ftGraph = FTG.FamilyTreeGraph( self.ftXML )
+
+            self.UpdateSelectedSubject()
+            self.UpdateSubjectListboxItems( True )
+
+            self.fileInXML = os.path.basename( filename )
+            self.master.title( self.fileInXML )
 
 
     # --------------------------------------------------------------------
@@ -1514,10 +1561,11 @@ class Application( Frame ):
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print 'Saving entire tree plot to filename:', filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving entire tree plot to filename:', filename
 
-        graph = self.ftGraph.PlotEntireTree()
-        graph.write_png( filename )
+            graph = self.ftGraph.PlotEntireTree()
+            graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1542,11 +1590,12 @@ class Application( Frame ):
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print "Saving subject's tree plot to filename:", filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print "Saving subject's tree plot to filename:", filename
 
-        self.ftGraph.SetIndividual( self.idIndividual )
-        graph = self.ftGraph.PlotSubjectFamily()
-        graph.write_png( filename )
+            self.ftGraph.SetIndividual( self.idIndividual )
+            graph = self.ftGraph.PlotSubjectFamily()
+            graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1571,11 +1620,13 @@ class Application( Frame ):
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print 'Saving ancestors tree plot to filename:', filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
 
-        self.ftGraph.SetIndividual( self.idIndividual )
-        graph = self.ftGraph.PlotSubjectTree()
-        graph.write_png( filename )
+            print 'Saving ancestors tree plot to filename:', filename
+
+            self.ftGraph.SetIndividual( self.idIndividual )
+            graph = self.ftGraph.PlotSubjectTree()
+            graph.write_png( filename )
 
 
 
@@ -1602,11 +1653,12 @@ class Application( Frame ):
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print 'Saving ancestors tree plot to filename:', filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving ancestors tree plot to filename:', filename
 
-        self.ftGraph.SetIndividual( self.idIndividual )
-        graph = self.ftGraph.PlotAncestorsTree()
-        graph.write_png( filename )
+            self.ftGraph.SetIndividual( self.idIndividual )
+            graph = self.ftGraph.PlotAncestorsTree()
+            graph.write_png( filename )
 
 
     # --------------------------------------------------------------------
@@ -1631,12 +1683,154 @@ class Application( Frame ):
 
         filename = tkFileDialog.asksaveasfilename( **options )
 
-        print 'Saving descendents tree plot to filename:', filename
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving descendents tree plot to filename:', filename
 
-        self.ftGraph.SetIndividual( self.idIndividual )
-        graph = self.ftGraph.PlotDescendentsTree()
-        graph.write_png( filename )
+            self.ftGraph.SetIndividual( self.idIndividual )
+            graph = self.ftGraph.PlotDescendentsTree()
+            graph.write_png( filename )
 
+
+    # --------------------------------------------------------------------
+    # OnExportSubjectFamily
+    # --------------------------------------------------------------------
+
+    def OnExportSubjectFamily( self ):
+
+        print 'OnExportSubjectFamily'
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        
+
+        options = {}
+
+        defaultFilename = self.ftGraph.GetNameAsSingleString( theIndividual ) + '_Family.xml'
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
+        options['initialfile'] = defaultFilename
+        options['parent'] = self
+        options['title'] = 'Export Subject Family Tree Data'
+
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving subject family tree data to filename:', filename
+
+            ftNewXML, etNewXML = self.CreateHeader( filename )
+
+            self.ftGraph.SetIndividual( self.idIndividual )
+
+            self.ftGraph.GetSubjectsFamilyMembers( ftNewXML )
+        
+            etNewXML.write( filename, pretty_print=True )
+
+
+    # --------------------------------------------------------------------
+    # OnExportSubjectTree
+    # --------------------------------------------------------------------
+
+    def OnExportSubjectTree( self ):
+
+        print 'OnExportSubjectTree'
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        
+
+        options = {}
+
+        defaultFilename = self.ftGraph.GetNameAsSingleString( theIndividual ) + '_FamilyTree.xml'
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
+        options['initialfile'] = defaultFilename
+        options['parent'] = self
+        options['title'] = 'Export Subject Family Tree Data'
+
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving subject family tree data to filename:', filename
+
+            ftNewXML, etNewXML = self.CreateHeader( filename )
+
+            self.ftGraph.SetIndividual( self.idIndividual )
+
+            self.ftGraph.GetSubjectsDescendents( ftNewXML )
+            self.ftGraph.GetSubjectsAncestors( ftNewXML )
+        
+            etNewXML.write( filename, pretty_print=True )
+          
+
+    # --------------------------------------------------------------------
+    # OnExportAncestors
+    # --------------------------------------------------------------------
+
+    def OnExportAncestors( self ):
+
+        print 'OnExportAncestors'
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        
+
+        options = {}
+
+        defaultFilename = self.ftGraph.GetNameAsSingleString( theIndividual ) + '_Ancestors.xml'
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
+        options['initialfile'] = defaultFilename
+        options['parent'] = self
+        options['title'] = 'Export Subject Ancestor Data'
+
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving subject ancestor data to filename:', filename
+
+            ftNewXML, etNewXML = self.CreateHeader( filename )
+
+            self.ftGraph.SetIndividual( self.idIndividual )
+
+            self.ftGraph.GetSubjectsAncestors( ftNewXML )
+        
+            etNewXML.write( filename, pretty_print=True )
+
+
+    # --------------------------------------------------------------------
+    # OnExportDescendents
+    # --------------------------------------------------------------------
+
+    def OnExportDescendents( self ):
+
+        print 'OnExportDescendents'
+
+        theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+        
+
+        options = {}
+
+        defaultFilename = self.ftGraph.GetNameAsSingleString( theIndividual ) + '_Descendents.xml'
+
+        options['defaultextension'] = '.xml'
+        options['filetypes'] = [('all files', '.*'), ('image files', '.xml')]
+        options['initialfile'] = defaultFilename
+        options['parent'] = self
+        options['title'] = 'Export Subject Descendents Data'
+
+        filename = tkFileDialog.asksaveasfilename( **options )
+
+        if ( ( not filename is None ) and ( len( filename ) > 0 ) ):
+            print 'Saving subject descendents data to filename:', filename
+
+            ftNewXML, etNewXML = self.CreateHeader( filename )
+
+            self.ftGraph.SetIndividual( self.idIndividual )
+
+            self.ftGraph.GetSubjectsDescendents( ftNewXML )
+        
+            etXML.write( filename, pretty_print=True )
+        
 
     # --------------------------------------------------------------------
     # OnHelpAbout
