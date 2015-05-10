@@ -221,7 +221,9 @@ class Application( Frame ):
 
         if ( self.fileInXML is not None ):
 
-            self.etXML = ET.parse( self.fileInXML )
+            parser = ET.XMLParser( remove_blank_text=True )
+
+            self.etXML = ET.parse( self.fileInXML, parser )
             self.ftXML = self.etXML.getroot()
 
         self.SetHeader( None )
@@ -1512,8 +1514,20 @@ class Application( Frame ):
 
             print 'Opening tree data file:', filename
 
+            self.idIndividual = None
+            self.idSelectedFamilySpouse = None
+
+
             self.ftXML = ET.parse( filename ).getroot()
             self.ftGraph = FTG.FamilyTreeGraph( self.ftXML )
+
+            theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
+
+            if ( theIndividual is None ):
+
+                theIndividual = self.ftGraph.CreateIndividual()
+
+            self.idIndividual = self.ftGraph.GetIndividualID( theIndividual )
 
             self.UpdateSelectedSubject()
             self.UpdateSubjectListboxItems( True )
@@ -1743,8 +1757,6 @@ class Application( Frame ):
 
     def OnExportSubjectFamily( self ):
 
-        print 'OnExportSubjectFamily'
-
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         
 
@@ -1767,7 +1779,7 @@ class Application( Frame ):
 
             self.ftGraph.SetIndividual( self.idIndividual )
 
-            self.ftGraph.GetSubjectsFamilyMembers( ftNewXML )
+            self.ftGraph.CollateSubjectsFamilyMembers( ftNewXML )
         
             etNewXML.write( filename, pretty_print=True )
 
@@ -1777,8 +1789,6 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnExportSubjectTree( self ):
-
-        print 'OnExportSubjectTree'
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         
@@ -1802,8 +1812,8 @@ class Application( Frame ):
 
             self.ftGraph.SetIndividual( self.idIndividual )
 
-            self.ftGraph.GetSubjectsDescendents( ftNewXML )
-            self.ftGraph.GetSubjectsAncestors( ftNewXML )
+            self.ftGraph.CollateSubjectsDescendents( ftNewXML, self.idIndividual, True )
+            self.ftGraph.CollateSubjectsAncestors( ftNewXML, self.idIndividual, True )
         
             etNewXML.write( filename, pretty_print=True )
           
@@ -1813,8 +1823,6 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnExportAncestors( self ):
-
-        print 'OnExportAncestors'
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         
@@ -1838,7 +1846,7 @@ class Application( Frame ):
 
             self.ftGraph.SetIndividual( self.idIndividual )
 
-            self.ftGraph.GetSubjectsAncestors( ftNewXML )
+            self.ftGraph.CollateSubjectsAncestors( ftNewXML )
         
             etNewXML.write( filename, pretty_print=True )
 
@@ -1848,8 +1856,6 @@ class Application( Frame ):
     # --------------------------------------------------------------------
 
     def OnExportDescendents( self ):
-
-        print 'OnExportDescendents'
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         
@@ -1873,9 +1879,9 @@ class Application( Frame ):
 
             self.ftGraph.SetIndividual( self.idIndividual )
 
-            self.ftGraph.GetSubjectsDescendents( ftNewXML )
+            self.ftGraph.CollateSubjectsDescendents( ftNewXML )
         
-            etXML.write( filename, pretty_print=True )
+            etNewXML.write( filename, pretty_print=True )
         
 
     # --------------------------------------------------------------------
