@@ -1792,7 +1792,6 @@ class Application( Frame ):
 
         theIndividual = self.ftGraph.GetIndividual( self.idIndividual )
         
-
         options = {}
 
         defaultFilename = self.ftGraph.GetNameAsSingleString( theIndividual ) + '_FamilyTree.xml'
@@ -1812,8 +1811,11 @@ class Application( Frame ):
 
             self.ftGraph.SetIndividual( self.idIndividual )
 
-            self.ftGraph.CollateSubjectsDescendents( ftNewXML, self.idIndividual, True )
-            self.ftGraph.CollateSubjectsAncestors( ftNewXML, self.idIndividual, True )
+            idAncestors = self.ftGraph.GetSubjectsAncestors( self.idIndividual )
+    
+            for idAncestor in idAncestors:
+
+                self.ftGraph.CollateSubjectsDescendents( ftNewXML, idAncestor, True )
         
             etNewXML.write( filename, pretty_print=True )
           

@@ -631,6 +631,43 @@ class FamilyTreeXML( object ):
 
 
     # ----------------------------------------------------------------------
+    def GetSubjectsAncestors( self, idInputIndividual, indent=None, idAncestors=None ):
+
+        if ( idAncestors is None ):
+            idAncestors = []
+
+        if ( indent is None ):
+            indent = ''
+        else:
+            indent = indent + '  '
+
+        eIndividual = self.GetIndividual( idInputIndividual )        
+
+        if ( eIndividual is None ):
+            return idAncestors
+
+        print indent, idInputIndividual, self.GetName( eIndividual )
+
+        eMother, eFather, idFamilyChild = self.GetParents( eIndividual )
+
+        flgHasParent = False
+
+        if ( not eMother is None ):
+            flgHasParent = True
+            idAncestors = self.GetSubjectsAncestors( eMother.attrib['id'], indent, idAncestors )
+            
+        if ( not eFather is None ):
+            flgHasParent = True
+            idAncestors = self.GetSubjectsAncestors( eFather.attrib['id'], indent, idAncestors )
+
+        if ( not flgHasParent ):
+            idAncestors.append( idInputIndividual )
+
+        return idAncestors
+    # ----------------------------------------------------------------------
+
+
+    # ----------------------------------------------------------------------
     def CollateSubjectsAncestors( self, ftInputXML, idInputIndividual=None, flgIncludeSiblings=False ):
 
         if ( idInputIndividual is None ):
